@@ -15,7 +15,8 @@ install:
 script:
   - jdk_switcher use oraclejdk8
   - mvn clean install
+  - bash ./travis/push_image.sh
 
 after_success:
   - mvn clean cobertura:cobertura coveralls:report
-  - bash ./travis/push_image.sh
+
