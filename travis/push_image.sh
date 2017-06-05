@@ -20,7 +20,7 @@ check_release_tag() {
 }
 
 push_image() {
-  IMAGE_VERSION=`echo ${TRAVIS_TAG:1}`
+  IMAGE_VERSION=3.0.2-2017
   docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
   mvn clean package docker:build
   docker push skywalking/skywalking-collector:latest
@@ -28,7 +28,4 @@ push_image() {
 }
 
 
-if check_pull_is_tagged && check_release_tag; then
-    push_image
-    echo "Push is Done!"
-fi
+push_image
