@@ -15,7 +15,7 @@
     <properties>
         <jetty.version>9.4.2.v20170220</jetty.version>
         <main.class>org.skywalking.apm.collector.worker.CollectorBootStartUp</main.class>
-        <docker.image.name>skywalking/${artifactId}</docker.image.name>
+        <docker.image.name>skywalking/skywalking-collector</docker.image.name>
         <docker.image.version>${version}</docker.image.version>
     </properties>
 
