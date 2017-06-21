@@ -7,6 +7,7 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.skywalking.apm.collector.worker.Const;
+import org.skywalking.apm.collector.worker.instance.InstanceIndex;
 import org.skywalking.apm.collector.worker.node.NodeCompIndex;
 import org.skywalking.apm.collector.worker.node.NodeMappingIndex;
 import org.skywalking.apm.collector.worker.noderef.NodeRefIndex;
@@ -23,13 +24,15 @@ public class TraceDagDataBuilder {
     private Map<String, String> nodeCompMap = new HashMap<>();
     private Map<String, Long> resSumMap = new HashMap<>();
     private Map<String, Integer> nodeIdMap = new HashMap<>();
+    private Map<String, Integer> nodeCountMap = new HashMap<>();
     private JsonArray pointArray = new JsonArray();
     private JsonArray lineArray = new JsonArray();
 
     public JsonObject build(JsonArray nodeCompArray, JsonArray nodesMappingArray, JsonArray nodeRefsArray,
-        JsonArray resSumArray) {
+        JsonArray resSumArray, JsonArray nodeCountArray) {
         changeMapping2Map(nodesMappingArray);
         changeNodeComp2Map(nodeCompArray);
+        changeNodeCount2Map(nodeCountArray);
         resSumMerge(resSumArray);
 
         for (int i = 0; i < nodeRefsArray.size(); i++) {
@@ -55,6 +58,15 @@ public class TraceDagDataBuilder {
         return dagJsonObj;
     }
 
+    private void changeNodeCount2Map(JsonArray nodeCountArray) {
+        for (int i = 0; i < nodeCountArray.size(); i++) {
+            JsonObject nodesMappingJsonObj = nodeCountArray.get(i).getAsJsonObject();
+            String code = nodesMappingJsonObj.get(InstanceIndex.APPLICATION_CODE).getAsString();
+            Integer count = nodesMappingJsonObj.get("count").getAsInt();
+            nodeCountMap.put(code, count);
+        }
+    }
+
     private Integer findOrCreateNode(String peers) {
         if (nodeIdMap.containsKey(peers) && !peers.equals(Const.USER_CODE)) {
             return nodeIdMap.get(peers);
@@ -68,12 +80,18 @@ public class TraceDagDataBuilder {
             } else {
                 nodeJsonObj.addProperty("component", nodeCompMap.get(peers));
             }
+            nodeJsonObj.addProperty("instNum", getInstanceCount(peers));
             pointArray.add(nodeJsonObj);
 
             nodeIdMap.put(peers, nodeId);
             logger.debug("node: %s", nodeJsonObj);
         }
         return nodeId;
+    }
+
+    private int getInstanceCount(String code) {
+        Integer count = nodeCountMap.get(code);
+        return count == null ? 0 : count;
     }
 
     private void changeMapping2Map(JsonArray nodesMappingArray) {

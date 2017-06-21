@@ -18,6 +18,7 @@ import org.skywalking.apm.collector.actor.*;
 import org.skywalking.apm.collector.actor.selector.RollingSelector;
 import org.skywalking.apm.collector.worker.Const;
 import org.skywalking.apm.collector.worker.httpserver.ArgumentsParseException;
+import org.skywalking.apm.collector.worker.instance.persistence.CountInstancesWithTimeSlice;
 import org.skywalking.apm.collector.worker.node.persistence.NodeCompLoad;
 import org.skywalking.apm.collector.worker.node.persistence.NodeMappingSearchWithTimeSlice;
 import org.skywalking.apm.collector.worker.noderef.persistence.NodeRefResSumSearchWithTimeSlice;
@@ -69,6 +70,12 @@ public class TraceDagGetWithTimeSliceTestCase {
         doAnswer(answer_4).when(workerRefs_4).ask(Mockito.any(NodeRefResSumSearchWithTimeSlice.RequestEntity.class), Mockito.any(JsonObject.class));
         when(localWorkerContext.lookup(NodeRefResSumSearchWithTimeSlice.WorkerRole.INSTANCE)).thenReturn(workerRefs_4);
 
+        WorkerRefs workerRefs_5 = mock(WorkerRefs.class);
+        TraceDagGetAnswerGet_5 answer_5 = new TraceDagGetAnswerGet_5();
+        doAnswer(answer_5).when(workerRefs_5).ask(Mockito.any(CountInstancesWithTimeSlice.RequestEntity.class), Mockito.any(JsonObject.class));
+        when(localWorkerContext.lookup(CountInstancesWithTimeSlice.WorkerRole.INSTANCE)).thenReturn(workerRefs_5);
+
+
         getObj = PowerMockito.spy(new TraceDagGetWithTimeSlice(TraceDagGetWithTimeSlice.WorkerRole.INSTANCE, clusterWorkerContext, localWorkerContext));
     }
 
@@ -91,10 +98,11 @@ public class TraceDagGetWithTimeSliceTestCase {
         when(clusterWorkerContext.findProvider(NodeMappingSearchWithTimeSlice.WorkerRole.INSTANCE)).thenReturn(new NodeMappingSearchWithTimeSlice.Factory());
         when(clusterWorkerContext.findProvider(NodeRefSearchWithTimeSlice.WorkerRole.INSTANCE)).thenReturn(new NodeRefSearchWithTimeSlice.Factory());
         when(clusterWorkerContext.findProvider(NodeRefResSumSearchWithTimeSlice.WorkerRole.INSTANCE)).thenReturn(new NodeRefResSumSearchWithTimeSlice.Factory());
+        when(clusterWorkerContext.findProvider(CountInstancesWithTimeSlice.WorkerRole.INSTANCE)).thenReturn(new NodeRefResSumSearchWithTimeSlice.Factory());
 
         ArgumentCaptor<Role> argumentCaptor = ArgumentCaptor.forClass(Role.class);
         getObj.preStart();
-        verify(clusterWorkerContext, times(4)).findProvider(argumentCaptor.capture());
+        verify(clusterWorkerContext, times(5)).findProvider(argumentCaptor.capture());
 
         Assert.assertEquals("NodeCompLoad", argumentCaptor.getAllValues().get(0).roleName());
         Assert.assertEquals("NodeMappingSearchWithTimeSlice", argumentCaptor.getAllValues().get(1).roleName());
@@ -189,6 +197,16 @@ public class TraceDagGetWithTimeSliceTestCase {
             Assert.assertEquals(10, entity.getStartTime());
             Assert.assertEquals(20, entity.getEndTime());
             Assert.assertEquals("minute", entity.getSliceType());
+            return null;
+        }
+    }
+
+    class TraceDagGetAnswerGet_5 implements Answer {
+        @Override
+        public Object answer(InvocationOnMock invocation) throws Throwable {
+            CountInstancesWithTimeSlice.RequestEntity entity = (CountInstancesWithTimeSlice.RequestEntity) invocation.getArguments()[0];
+            Assert.assertEquals(10, entity.getStartTime());
+            Assert.assertEquals(20, entity.getEndTime());
             return null;
         }
     }

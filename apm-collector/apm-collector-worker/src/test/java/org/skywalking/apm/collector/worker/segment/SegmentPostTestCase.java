@@ -26,6 +26,8 @@ import org.skywalking.apm.collector.actor.Role;
 import org.skywalking.apm.collector.actor.WorkerRef;
 import org.skywalking.apm.collector.actor.selector.RollingSelector;
 import org.skywalking.apm.collector.worker.globaltrace.analysis.GlobalTraceAnalysis;
+import org.skywalking.apm.collector.worker.instance.analysis.PingTimeAnalysis;
+import org.skywalking.apm.collector.worker.instance.persistence.PingTimeUpdater;
 import org.skywalking.apm.collector.worker.node.analysis.NodeCompAnalysis;
 import org.skywalking.apm.collector.worker.node.analysis.NodeMappingDayAnalysis;
 import org.skywalking.apm.collector.worker.node.analysis.NodeMappingHourAnalysis;
@@ -139,11 +141,16 @@ public class SegmentPostTestCase {
         when(clusterWorkerContext.findProvider(NodeMappingHourAnalysis.Role.INSTANCE)).thenReturn(new NodeMappingHourAnalysis.Factory());
         when(clusterWorkerContext.findProvider(NodeMappingMinuteAnalysis.Role.INSTANCE)).thenReturn(new NodeMappingMinuteAnalysis.Factory());
 
+        when(clusterWorkerContext.findProvider(PingTimeUpdater.Role.INSTANCE)).thenReturn(new PingTimeUpdater.Factory());
+        PingTimeAnalysis.Factory pingTimeAnalysis = new PingTimeAnalysis.Factory();
+        pingTimeAnalysis.setClusterContext(clusterWorkerContext);
+        when(clusterWorkerContext.findProvider(PingTimeAnalysis.Role.INSTANCE)).thenReturn(pingTimeAnalysis);
+
         ArgumentCaptor<Role> argumentCaptor = ArgumentCaptor.forClass(Role.class);
 
         segmentPost.preStart();
 
-        verify(clusterWorkerContext, times(17)).findProvider(argumentCaptor.capture());
+        verify(clusterWorkerContext, times(19)).findProvider(argumentCaptor.capture());
         Assert.assertEquals(GlobalTraceAnalysis.Role.INSTANCE.roleName(), argumentCaptor.getAllValues().get(0).roleName());
 
         Assert.assertEquals(SegmentAnalysis.Role.INSTANCE.roleName(), argumentCaptor.getAllValues().get(1).roleName());

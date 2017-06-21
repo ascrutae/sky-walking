@@ -121,5 +121,16 @@ public class WorkerConfig {
                 public static int SIZE = 1024;
             }
         }
+
+        public static class Instance {
+
+            public class PingTimeAnalysis {
+                public static final int SIZE = 1024;
+            }
+
+            public class InstanceAnalysis {
+                public static final int SIZE = 32;
+            }
+        }
     }
 }
