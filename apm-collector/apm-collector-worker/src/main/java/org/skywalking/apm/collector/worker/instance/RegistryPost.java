@@ -16,7 +16,7 @@ import org.skywalking.apm.collector.actor.selector.WorkerSelector;
 import org.skywalking.apm.collector.worker.httpserver.AbstractStreamPost;
 import org.skywalking.apm.collector.worker.httpserver.AbstractStreamPostProvider;
 import org.skywalking.apm.collector.worker.httpserver.ArgumentsParseException;
-import org.skywalking.apm.collector.worker.instance.analysis.InstanceAnalysis;
+import org.skywalking.apm.collector.worker.instance.analysis.ActivationAnalysis;
 import org.skywalking.apm.collector.worker.instance.analysis.PingTimeAnalysis;
 import org.skywalking.apm.collector.worker.instance.entity.InstanceDeserialize;
 import org.skywalking.apm.collector.worker.instance.entity.Registry;
@@ -45,7 +45,7 @@ public class RegistryPost extends AbstractStreamPost {
 
             long registryTime = DateTools.getMinuteSlice(System.currentTimeMillis());
 
-            getSelfContext().lookup(InstanceAnalysis.Role.INSTANCE).tell(new InstanceAnalysis.Instance(registryInfo.getApplicationCode(),
+            getSelfContext().lookup(ActivationAnalysis.Role.INSTANCE).tell(new ActivationAnalysis.Instance(registryInfo.getApplicationCode(),
                 instanceId, registryTime));
             getSelfContext().lookup(PingTimeAnalysis.Role.INSTANCE).tell(new PingTimeAnalysis.Ping(instanceId, registryTime));
 
@@ -60,7 +60,7 @@ public class RegistryPost extends AbstractStreamPost {
 
     @Override
     public void preStart() throws ProviderNotFoundException {
-        getClusterContext().findProvider(InstanceAnalysis.Role.INSTANCE).create(this);
+        getClusterContext().findProvider(ActivationAnalysis.Role.INSTANCE).create(this);
         getClusterContext().findProvider(PingTimeAnalysis.Role.INSTANCE).create(this);
     }
 

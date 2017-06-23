@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import org.junit.Assert;
 import org.junit.Test;
+import org.skywalking.apm.agent.core.conf.Config;
 import org.skywalking.apm.agent.core.context.tag.Tags;
 import org.skywalking.apm.agent.core.tags.StringTagReader;
 
@@ -14,7 +15,7 @@ import org.skywalking.apm.agent.core.tags.StringTagReader;
 public class TraceSegmentTestCase {
     @Test
     public void testConstructor() {
-        TraceSegment segment = new TraceSegment("billing_app");
+        TraceSegment segment = new TraceSegment("billing_app", Config.Agent.INSTANCE_ID);
 
         Assert.assertTrue(segment.getTraceSegmentId().startsWith("Segment"));
         Assert.assertTrue(segment.getStartTime() > 0);
@@ -23,7 +24,7 @@ public class TraceSegmentTestCase {
 
     @Test
     public void testRef() {
-        TraceSegment segment = new TraceSegment("billing_app");
+        TraceSegment segment = new TraceSegment("billing_app", Config.Agent.INSTANCE_ID);
 
         TraceSegmentRef ref1 = new TraceSegmentRef();
         ref1.setTraceSegmentId("parent_trace_0");
@@ -50,7 +51,7 @@ public class TraceSegmentTestCase {
 
     @Test
     public void testArchiveSpan() {
-        TraceSegment segment = new TraceSegment("billing_app");
+        TraceSegment segment = new TraceSegment("billing_app", Config.Agent.INSTANCE_ID);
         Span span1 = new Span(1, "/serviceA");
         segment.archive(span1);
 
@@ -63,7 +64,7 @@ public class TraceSegmentTestCase {
 
     @Test
     public void testFinish() {
-        TraceSegment segment = new TraceSegment("billing_app");
+        TraceSegment segment = new TraceSegment("billing_app", Config.Agent.INSTANCE_ID);
 
         Assert.assertTrue(segment.getEndTime() == 0);
         segment.finish();
@@ -72,7 +73,7 @@ public class TraceSegmentTestCase {
 
     @Test
     public void testSerialize() {
-        TraceSegment segment = new TraceSegment("billing_app");
+        TraceSegment segment = new TraceSegment("billing_app", Config.Agent.INSTANCE_ID);
 
         TraceSegmentRef ref1 = new TraceSegmentRef();
         ref1.setTraceSegmentId("parent_trace_0");

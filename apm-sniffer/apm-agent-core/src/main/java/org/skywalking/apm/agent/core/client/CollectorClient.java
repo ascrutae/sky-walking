@@ -2,6 +2,12 @@ package org.skywalking.apm.agent.core.client;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+import java.io.IOException;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -16,10 +22,6 @@ import org.skywalking.apm.agent.core.queue.TraceSegmentProcessQueue;
 import org.skywalking.apm.logging.ILog;
 import org.skywalking.apm.logging.LogManager;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Random;
-
 /**
  * The <code>CollectorClient</code> runs as an independency thread.
  * It retrieves cached {@link TraceSegment} from {@link TraceSegmentProcessQueue},
@@ -33,6 +35,7 @@ public class CollectorClient implements Runnable {
     private String[] serverList;
     private volatile int selectedServer = -1;
     private Gson serializer;
+    private long lastSendSegmentTime;
 
     public CollectorClient() {
         serverList = Config.Collector.SERVERS.split(",");
@@ -55,19 +58,30 @@ public class CollectorClient implements Runnable {
                 if (cachedTraceSegments.size() > 0) {
                     SegmentsMessage message = null;
                     int count = 0;
+                    int segmentWithoutInstanceIdCount = 0;
                     for (TraceSegment segment : cachedTraceSegments) {
+                        if (segment.getInstanceId() == 0) {
+                            segmentWithoutInstanceIdCount++;
+                            continue;
+                        }
+
                         if (message == null) {
                             message = new SegmentsMessage();
                         }
                         message.append(segment);
-                        if (count == Config.Collector.BATCH_SIZE) {
+                        if (count++ == Config.Collector.BATCH_SIZE) {
                             sendToCollector(message);
                             message = null;
                         }
                     }
                     sendToCollector(message);
+                    lastSendSegmentTime = System.currentTimeMillis();
+
+                    logger.debug("Send segment count: {}, segment without instance id count: {}.", cachedTraceSegments.size(),
+                        segmentWithoutInstanceIdCount);
                 } else {
                     sleepTime = SLEEP_TIME_MILLIS;
+                    sendPingTimeIfNecessary();
                 }
 
                 if (sleepTime > 0) {
@@ -88,10 +102,20 @@ public class CollectorClient implements Runnable {
         if (message == null) {
             return;
         }
-        String messageJson = message.serialize(serializer);
+        sendMessage(message.serialize(serializer), Config.Collector.Service.SEGMENTS);
+    }
+
+    private void sendToCollector(PingTime time) throws RESTResponseStatusError, IOException {
+        if (time == null) {
+            return;
+        }
+        sendMessage(time.serialize(serializer), Config.Collector.Service.PING_TIME);
+    }
+
+    private void sendMessage(String messageJson, String requestURL) throws RESTResponseStatusError, IOException {
         CloseableHttpClient httpClient = HttpClients.custom().build();
         try {
-            HttpPost httpPost = ready2Send(messageJson);
+            HttpPost httpPost = ready2Send(messageJson, requestURL);
             if (httpPost != null) {
                 CloseableHttpResponse httpResponse = httpClient.execute(httpPost);
                 int statusCode = httpResponse.getStatusLine().getStatusCode();
@@ -108,18 +132,26 @@ public class CollectorClient implements Runnable {
         }
     }
 
+    private void sendPingTimeIfNecessary() throws RESTResponseStatusError, IOException {
+        boolean sendPingTime = System.currentTimeMillis() - lastSendSegmentTime <= TimeUnit.MINUTES.toMillis(1);
+        if (Config.Agent.INSTANCE_ID != -1 && sendPingTime) {
+            sendToCollector(new PingTime(Config.Agent.INSTANCE_ID));
+        }
+    }
+
     /**
      * Prepare the given message for HTTP Post service.
      *
      * @param messageJson to send
+     * @param requestURL
      * @return {@link HttpPost}, when is ready to send. otherwise, null.
      */
-    private HttpPost ready2Send(String messageJson) {
+    private HttpPost ready2Send(String messageJson, String requestURL) {
         if (selectedServer == -1) {
             //no available server
             return null;
         }
-        HttpPost post = new HttpPost("http://" + serverList[selectedServer] + Config.Collector.SERVICE_NAME);
+        HttpPost post = new HttpPost("http://" + serverList[selectedServer] + requestURL);
         StringEntity entity = new StringEntity(messageJson, ContentType.APPLICATION_JSON);
         post.setEntity(entity);
 
@@ -146,6 +178,20 @@ public class CollectorClient implements Runnable {
             Thread.sleep(millis);
         } catch (InterruptedException e) {
 
+        }
+    }
+
+    private class PingTime {
+        @Expose
+        @SerializedName("ii")
+        private Long instanceId;
+
+        public PingTime(Long instanceId) {
+            this.instanceId = instanceId;
+        }
+
+        public String serialize(Gson serializer) {
+            return serializer.toJson(this);
         }
     }
 }

@@ -37,7 +37,7 @@ public final class TracerContext implements AbstractTracerContext {
      * Create a {@link TraceSegment} and init {@link #spanIdGenerator} as 0;
      */
     TracerContext() {
-        this.segment = new TraceSegment(Config.Agent.APPLICATION_CODE);
+        this.segment = new TraceSegment(Config.Agent.APPLICATION_CODE, Config.Agent.INSTANCE_ID);
         this.spanIdGenerator = 0;
         if (samplingService == null) {
             samplingService = ServiceManager.INSTANCE.findService(SamplingService.class);

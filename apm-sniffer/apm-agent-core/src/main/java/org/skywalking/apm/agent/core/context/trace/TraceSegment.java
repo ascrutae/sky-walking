@@ -90,14 +90,19 @@ public class TraceSegment {
     @SerializedName(value = "gt")
     private DistributedTraceIds relatedGlobalTraces;
 
+    @Expose
+    @SerializedName(value = "ii")
+    private long instanceId;
+
     private boolean ignore = false;
 
     /**
      * Create a trace segment, by the given applicationCode.
      */
-    public TraceSegment(String applicationCode) {
+    public TraceSegment(String applicationCode, long instanceId) {
         this();
         this.applicationCode = applicationCode;
+        this.instanceId = instanceId;
     }
 
     /**
@@ -202,6 +207,10 @@ public class TraceSegment {
 
     public boolean isIgnore() {
         return ignore;
+    }
+
+    public long getInstanceId() {
+        return instanceId;
     }
 
     public void setIgnore(boolean ignore) {

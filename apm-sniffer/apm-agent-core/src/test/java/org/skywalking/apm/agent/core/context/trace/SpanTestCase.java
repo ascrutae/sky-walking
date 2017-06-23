@@ -4,11 +4,9 @@ import java.lang.reflect.Field;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
+import org.skywalking.apm.agent.core.conf.Config;
 import org.skywalking.apm.agent.core.tags.BooleanTagReader;
 import org.skywalking.apm.agent.core.tags.StringTagReader;
-import org.skywalking.apm.agent.core.context.trace.LogData;
-import org.skywalking.apm.agent.core.context.trace.Span;
-import org.skywalking.apm.agent.core.context.trace.TraceSegment;
 import org.skywalking.apm.agent.core.context.tag.Tags;
 
 /**
@@ -30,7 +28,7 @@ public class SpanTestCase {
 
     @Test
     public void testFinish() {
-        TraceSegment owner = new TraceSegment("billing_app");
+        TraceSegment owner = new TraceSegment("billing_app", Config.Agent.INSTANCE_ID);
 
         Span span1 = new Span(0, "serviceA");
 

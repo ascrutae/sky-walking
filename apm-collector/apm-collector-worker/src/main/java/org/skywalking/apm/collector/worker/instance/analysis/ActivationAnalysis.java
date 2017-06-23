@@ -15,18 +15,18 @@ import org.skywalking.apm.collector.actor.selector.WorkerSelector;
 import org.skywalking.apm.collector.worker.RecordAnalysisMember;
 import org.skywalking.apm.collector.worker.config.WorkerConfig;
 import org.skywalking.apm.collector.worker.instance.InstanceIndex;
-import org.skywalking.apm.collector.worker.instance.persistence.InstanceSaver;
+import org.skywalking.apm.collector.worker.instance.persistence.ActivationSaver;
 
-public class InstanceAnalysis extends RecordAnalysisMember {
-    private Logger logger = LogManager.getFormatterLogger(InstanceAnalysis.class);
+public class ActivationAnalysis extends RecordAnalysisMember {
+    private Logger logger = LogManager.getFormatterLogger(ActivationAnalysis.class);
 
-    public InstanceAnalysis(Role role, ClusterWorkerContext clusterContext, LocalWorkerContext selfContext) {
+    public ActivationAnalysis(Role role, ClusterWorkerContext clusterContext, LocalWorkerContext selfContext) {
         super(role, clusterContext, selfContext);
     }
 
     @Override
     public void preStart() throws ProviderNotFoundException {
-        getClusterContext().findProvider(InstanceSaver.Role.INSTANCE).create(this);
+        getClusterContext().findProvider(ActivationSaver.Role.INSTANCE).create(this);
     }
 
     @Override
@@ -73,22 +73,22 @@ public class InstanceAnalysis extends RecordAnalysisMember {
     @Override
     protected WorkerRefs aggWorkRefs() {
         try {
-            return getSelfContext().lookup(InstanceSaver.Role.INSTANCE);
+            return getSelfContext().lookup(ActivationSaver.Role.INSTANCE);
         } catch (WorkerNotFoundException e) {
-            logger.error("The role of %s worker not found", InstanceSaver.Role.INSTANCE.roleName());
+            logger.error("The role of %s worker not found", ActivationSaver.Role.INSTANCE.roleName());
         }
         return null;
     }
 
-    public static class Factory extends AbstractLocalAsyncWorkerProvider<InstanceAnalysis> {
+    public static class Factory extends AbstractLocalAsyncWorkerProvider<ActivationAnalysis> {
         @Override
-        public InstanceAnalysis.Role role() {
-            return InstanceAnalysis.Role.INSTANCE;
+        public ActivationAnalysis.Role role() {
+            return ActivationAnalysis.Role.INSTANCE;
         }
 
         @Override
-        public InstanceAnalysis workerInstance(ClusterWorkerContext clusterContext) {
-            return new InstanceAnalysis(role(), clusterContext, new LocalWorkerContext());
+        public ActivationAnalysis workerInstance(ClusterWorkerContext clusterContext) {
+            return new ActivationAnalysis(role(), clusterContext, new LocalWorkerContext());
         }
 
         @Override
@@ -102,7 +102,7 @@ public class InstanceAnalysis extends RecordAnalysisMember {
 
         @Override
         public String roleName() {
-            return InstanceAnalysis.class.getSimpleName();
+            return ActivationAnalysis.class.getSimpleName();
         }
 
         @Override

@@ -45,10 +45,6 @@ public class CountInstancesWithTimeSlice extends AbstractLocalSyncWorker {
 
             BoolQueryBuilder instanceCountQuery = QueryBuilders.boolQuery();
 
-            BoolQueryBuilder registryTimeAndPingTimeWithinQueryTime = QueryBuilders.boolQuery();
-            registryTimeAndPingTimeWithinQueryTime.must().add(QueryBuilders.rangeQuery(InstanceIndex.REGISTRY_TIME).gte(requestEntity.getStartTime()));
-            registryTimeAndPingTimeWithinQueryTime.must().add(QueryBuilders.rangeQuery(PingTimeIndex.PING_TIME).lte(requestEntity.getEndTime()));
-
             BoolQueryBuilder registryTimeAndPingTimeOutsideQueryTime = QueryBuilders.boolQuery();
             registryTimeAndPingTimeOutsideQueryTime.must().add(QueryBuilders.rangeQuery(InstanceIndex.REGISTRY_TIME).lte(requestEntity.getEndTime()));
             registryTimeAndPingTimeOutsideQueryTime.must().add(QueryBuilders.rangeQuery(PingTimeIndex.PING_TIME).gte(requestEntity.getStartTime()));
@@ -58,7 +54,6 @@ public class CountInstancesWithTimeSlice extends AbstractLocalSyncWorker {
 
             instanceCountQuery.should().add(registryTimeWithinQueryTime);
             instanceCountQuery.should().add(pingTimeWithinQueryTime);
-            instanceCountQuery.should().add(registryTimeAndPingTimeWithinQueryTime);
             instanceCountQuery.should().add(registryTimeAndPingTimeOutsideQueryTime);
 
             searchRequestBuilder.setQuery(instanceCountQuery);

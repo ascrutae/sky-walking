@@ -19,7 +19,6 @@ public class Config {
          * Suggestion: set a unique name for each application, one application's nodes share the same code.
          */
         public static String APPLICATION_CODE = "";
-
         /**
          * Negative or zero means off, by default.
          * {@link #SAMPLE_N_PER_10_SECS} means sampling N {@link TraceSegment} in 10 seconds tops.
@@ -31,6 +30,8 @@ public class Config {
          * this segment should be ignored.
          */
         public static String IGNORE_SUFFIX = ".jpg,.jpeg,.js,.css,.png,.bmp,.gif,.ico,.mp3,.mp4,.html";
+
+        public static long INSTANCE_ID = 0;
     }
 
     public static class Collector {
@@ -43,14 +44,33 @@ public class Config {
         public static String SERVERS = "";
 
         /**
-         * Collector receive segments REST-Service name.
-         */
-        public static String SERVICE_NAME = "/segments";
-
-        /**
          * The max size to send traces per rest-service call.
          */
         public static int BATCH_SIZE = 50;
+
+        public static class Service {
+
+            /**
+             * Collector receive segments REST-Service name.
+             */
+            public static String SEGMENTS = "/segments";
+
+            /**
+             * Collector receive ping time REST-Service name.
+             */
+            public static String PING_TIME = "/instances/ping";
+
+            /**
+             * Collector receive registry info REST-Service name.
+             */
+            public static String REGISTRY_INSTANCE = "/instances/registry";
+
+            /**
+             * Collector receive activation info REST-Service name.
+             */
+            public static String ACTIVATE_INSTANCE = "/instances/active";
+
+        }
     }
 
     public static class Buffer {

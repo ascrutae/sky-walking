@@ -9,9 +9,9 @@ import org.skywalking.apm.collector.worker.RecordPersistenceMember;
 import org.skywalking.apm.collector.worker.instance.InstanceIndex;
 import org.skywalking.apm.collector.worker.storage.PersistenceWorkerListener;
 
-public class InstanceSaver extends RecordPersistenceMember {
+public class ActivationSaver extends RecordPersistenceMember {
 
-    public InstanceSaver(Role role, ClusterWorkerContext clusterContext, LocalWorkerContext selfContext) {
+    public ActivationSaver(Role role, ClusterWorkerContext clusterContext, LocalWorkerContext selfContext) {
         super(role, clusterContext, selfContext);
     }
 
@@ -25,15 +25,15 @@ public class InstanceSaver extends RecordPersistenceMember {
         return InstanceIndex.TYPE_REGISTRY;
     }
 
-    public static class Factory extends AbstractLocalSyncWorkerProvider<InstanceSaver> {
+    public static class Factory extends AbstractLocalSyncWorkerProvider<ActivationSaver> {
         @Override
-        public InstanceSaver.Role role() {
-            return InstanceSaver.Role.INSTANCE;
+        public ActivationSaver.Role role() {
+            return ActivationSaver.Role.INSTANCE;
         }
 
         @Override
-        public InstanceSaver workerInstance(ClusterWorkerContext clusterContext) {
-            InstanceSaver worker = new InstanceSaver(role(), clusterContext, new LocalWorkerContext());
+        public ActivationSaver workerInstance(ClusterWorkerContext clusterContext) {
+            ActivationSaver worker = new ActivationSaver(role(), clusterContext, new LocalWorkerContext());
             PersistenceWorkerListener.INSTANCE.register(worker);
             return worker;
         }
@@ -44,7 +44,7 @@ public class InstanceSaver extends RecordPersistenceMember {
 
         @Override
         public String roleName() {
-            return InstanceSaver.class.getSimpleName();
+            return ActivationSaver.class.getSimpleName();
         }
 
         @Override
