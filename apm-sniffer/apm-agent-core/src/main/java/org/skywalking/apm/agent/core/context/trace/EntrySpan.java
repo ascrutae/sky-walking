@@ -17,7 +17,7 @@ import org.skywalking.apm.network.trace.component.Component;
  * @author wusheng
  */
 public class EntrySpan extends StackBasedTracingSpan {
-    private int currentMaxDepth;
+    private volatile int currentMaxDepth;
 
     public EntrySpan(int spanId, int parentSpanId, String operationName) {
         super(spanId, parentSpanId, operationName);

@@ -1,10 +1,13 @@
 package org.skywalking.apm.agent.core.context;
 
+import java.util.LinkedList;
+import java.util.List;
 import org.skywalking.apm.agent.core.boot.BootService;
 import org.skywalking.apm.agent.core.boot.ServiceManager;
 import org.skywalking.apm.agent.core.conf.Config;
 import org.skywalking.apm.agent.core.conf.RemoteDownstreamConfig;
 import org.skywalking.apm.agent.core.context.trace.AbstractSpan;
+import org.skywalking.apm.agent.core.context.trace.AbstractTracingSpan;
 import org.skywalking.apm.agent.core.context.trace.TraceSegment;
 import org.skywalking.apm.agent.core.dictionary.DictionaryUtil;
 import org.skywalking.apm.agent.core.sampling.SamplingService;
@@ -146,10 +149,15 @@ public class ContextManager implements TracingContextListener, BootService, Igno
         get().stopSpan(span);
     }
 
+    public static List<AbstractTracingSpan> activeSpans(){
+        return get().activeSpans();
+    }
+
     @Override
     public void beforeBoot() throws Throwable {
 
     }
+
 
     @Override
     public void boot() {

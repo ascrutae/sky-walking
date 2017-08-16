@@ -14,23 +14,25 @@ import org.skywalking.apm.agent.core.dictionary.DictionaryManager;
 import org.skywalking.apm.agent.core.dictionary.DictionaryUtil;
 import org.skywalking.apm.agent.core.dictionary.PossibleFound;
 import org.skywalking.apm.agent.core.sampling.SamplingService;
+import org.skywalking.apm.logging.ILog;
+import org.skywalking.apm.logging.LogManager;
 
 /**
- * The <code>TracingContext</code> represents a core tracing logic controller.
- * It build the final {@link TracingContext}, by the stack mechanism,
- * which is similar with the codes work.
+ * The <code>TracingContext</code> represents a core tracing logic controller. It build the final {@link
+ * TracingContext}, by the stack mechanism, which is similar with the codes work.
  *
- * In opentracing concept, it means, all spans in a segment tracing context(thread)
- * are CHILD_OF relationship, but no FOLLOW_OF.
+ * In opentracing concept, it means, all spans in a segment tracing context(thread) are CHILD_OF relationship, but no
+ * FOLLOW_OF.
  *
- * In skywalking core concept, FOLLOW_OF is an abstract concept
- * when cross-process MQ or cross-thread async/batch tasks happen,
- * we used {@link TraceSegmentRef} for these scenarios.
- * Check {@link TraceSegmentRef} which is from {@link ContextCarrier} or {@link ContextSnapshot}.
+ * In skywalking core concept, FOLLOW_OF is an abstract concept when cross-process MQ or cross-thread async/batch tasks
+ * happen, we used {@link TraceSegmentRef} for these scenarios. Check {@link TraceSegmentRef} which is from {@link
+ * ContextCarrier} or {@link ContextSnapshot}.
  *
  * @author wusheng
  */
 public class TracingContext implements AbstractTracerContext {
+    private ILog logger = LogManager.getLogger(TracingContext.class);
+
     /**
      * @see {@link SamplingService}
      */
@@ -42,11 +44,9 @@ public class TracingContext implements AbstractTracerContext {
     private TraceSegment segment;
 
     /**
-     * Active spans stored in a Stack, usually called 'ActiveSpanStack'.
-     * This {@link LinkedList} is the in-memory storage-structure.
-     * <p>
-     * I use {@link LinkedList#removeLast()}, {@link LinkedList#addLast(Object)} and {@link LinkedList#last} instead of
-     * {@link #pop()}, {@link #push(AbstractTracingSpan)}, {@link #peek()}
+     * Active spans stored in a Stack, usually called 'ActiveSpanStack'. This {@link LinkedList} is the in-memory
+     * storage-structure. <p> I use {@link LinkedList#removeLast()}, {@link LinkedList#addLast(Object)} and {@link
+     * LinkedList#last} instead of {@link #pop()}, {@link #push(AbstractTracingSpan)}, {@link #peek()}
      */
     private LinkedList<AbstractTracingSpan> activeSpanStack = new LinkedList<AbstractTracingSpan>();
 
@@ -345,8 +345,8 @@ public class TracingContext implements AbstractTracerContext {
     }
 
     /**
-     * Stop the given span, if and only if this one is the top element of {@link #activeSpanStack}.
-     * Because the tracing core must make sure the span must match in a stack module, like any program did.
+     * Stop the given span, if and only if this one is the top element of {@link #activeSpanStack}. Because the tracing
+     * core must make sure the span must match in a stack module, like any program did.
      *
      * @param span to finish
      */
@@ -371,6 +371,14 @@ public class TracingContext implements AbstractTracerContext {
      * TracingContext.ListenerManager}
      */
     private void finish() {
+        if (segment.getFinishedSpans().size() != 4) {
+            StringBuilder logInfo = new StringBuilder("[\n");
+            for (AbstractTracingSpan span : segment.getFinishedSpans()) {
+                logInfo.append("<" + span.getParentSpanId() + "," + span.getSpanId() + ">\t" + span.getOperationId() + "\n");
+            }
+            logger.info(logInfo + "]");
+        }
+
         TraceSegment finishedSegment = segment.finish();
         /**
          * Recheck the segment if the segment contains only one span.
@@ -403,9 +411,9 @@ public class TracingContext implements AbstractTracerContext {
         }
 
         /**
-         * Notify the {@link TracingContext.ListenerManager} about the given {@link TraceSegment} have finished.
-         * And trigger {@link TracingContext.ListenerManager} to notify all {@link #LISTENERS} 's
-         * {@link TracingContextListener#afterFinished(TraceSegment)}
+         * Notify the {@link TracingContext.ListenerManager} about the given {@link TraceSegment} have finished. And
+         * trigger {@link TracingContext.ListenerManager} to notify all {@link #LISTENERS} 's {@link
+         * TracingContextListener#afterFinished(TraceSegment)}
          *
          * @param finishedSegment
          */
@@ -453,5 +461,9 @@ public class TracingContext implements AbstractTracerContext {
 
     private AbstractTracingSpan first() {
         return activeSpanStack.getFirst();
+    }
+
+    public List<AbstractTracingSpan> activeSpans() {
+        return activeSpanStack;
     }
 }

@@ -1,17 +1,23 @@
 package org.skywalking.apm.plugin.jedis.v2;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import org.skywalking.apm.agent.core.context.ContextCarrier;
 import org.skywalking.apm.agent.core.context.ContextManager;
 import org.skywalking.apm.agent.core.context.tag.Tags;
 import org.skywalking.apm.agent.core.context.trace.AbstractSpan;
+import org.skywalking.apm.agent.core.context.trace.AbstractTracingSpan;
 import org.skywalking.apm.agent.core.context.trace.SpanLayer;
 import org.skywalking.apm.agent.core.plugin.interceptor.enhance.EnhancedInstance;
 import org.skywalking.apm.agent.core.plugin.interceptor.enhance.InstanceMethodsAroundInterceptor;
 import org.skywalking.apm.agent.core.plugin.interceptor.enhance.MethodInterceptResult;
+import org.skywalking.apm.logging.ILog;
+import org.skywalking.apm.logging.LogManager;
 import org.skywalking.apm.network.trace.component.ComponentsDefine;
 
 public class JedisMethodInterceptor implements InstanceMethodsAroundInterceptor {
+
+    private ILog logger = LogManager.getLogger(JedisMethodInterceptor.class);
 
     @Override public void beforeMethod(EnhancedInstance objInst, Method method, Object[] allArguments,
         Class<?>[] argumentsTypes, MethodInterceptResult result) throws Throwable {
@@ -28,6 +34,15 @@ public class JedisMethodInterceptor implements InstanceMethodsAroundInterceptor 
 
     @Override public Object afterMethod(EnhancedInstance objInst, Method method, Object[] allArguments,
         Class<?>[] argumentsTypes, Object ret) throws Throwable {
+        List<AbstractTracingSpan> activeSpans = ContextManager.activeSpans();
+        if (activeSpans.size() != 2) {
+            StringBuilder logInfo = new StringBuilder("[\n");
+            for (AbstractTracingSpan span : activeSpans) {
+                logInfo.append("<" + span.getParentSpanId() + "," + span.getSpanId() + ">\t" + span.getOperationId() + "\n");
+            }
+            logger.info(logInfo + "]");
+        }
+
         ContextManager.stopSpan();
         return ret;
     }

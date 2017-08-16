@@ -256,4 +256,8 @@ public abstract class AbstractTracingSpan implements AbstractSpan {
 
         return spanBuilder;
     }
+
+    public int getParentSpanId() {
+        return parentSpanId;
+    }
 }

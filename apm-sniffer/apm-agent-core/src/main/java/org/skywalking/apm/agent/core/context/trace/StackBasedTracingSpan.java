@@ -12,7 +12,7 @@ import org.skywalking.apm.agent.core.dictionary.PossibleFound;
  * @author wusheng
  */
 public abstract class StackBasedTracingSpan extends AbstractTracingSpan {
-    protected int stackDepth;
+    protected volatile int stackDepth;
 
     protected StackBasedTracingSpan(int spanId, int parentSpanId, String operationName) {
         super(spanId, parentSpanId, operationName);

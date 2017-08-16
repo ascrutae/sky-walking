@@ -1,6 +1,8 @@
 package org.skywalking.apm.agent.core.context;
 
+import java.util.List;
 import org.skywalking.apm.agent.core.context.trace.AbstractSpan;
+import org.skywalking.apm.agent.core.context.trace.AbstractTracingSpan;
 import org.skywalking.apm.agent.core.context.trace.EntrySpan;
 import org.skywalking.apm.agent.core.context.trace.ExitSpan;
 import org.skywalking.apm.agent.core.context.trace.LocalSpan;
@@ -12,8 +14,7 @@ import org.skywalking.apm.agent.core.context.trace.LocalSpan;
  */
 public interface AbstractTracerContext {
     /**
-     * Prepare for the cross-process propagation.
-     * How to initialize the carrier, depends on the implementation.
+     * Prepare for the cross-process propagation. How to initialize the carrier, depends on the implementation.
      *
      * @param carrier to carry the context for crossing process.
      * @see {@link TracingContext} and {@link IgnoredTracerContext}
@@ -21,8 +22,8 @@ public interface AbstractTracerContext {
     void inject(ContextCarrier carrier);
 
     /**
-     * Build the reference between this segment and a cross-process segment.
-     * How to build, depends on the implementation.
+     * Build the reference between this segment and a cross-process segment. How to build, depends on the
+     * implementation.
      *
      * @param carrier carried the context from a cross-process segment.
      * @see {@link TracingContext} and {@link IgnoredTracerContext}
@@ -30,9 +31,8 @@ public interface AbstractTracerContext {
     void extract(ContextCarrier carrier);
 
     /**
-     * Capture a snapshot for cross-thread propagation.
-     * It's a similar concept with ActiveSpan.Continuation in OpenTracing-java
-     * How to build, depends on the implementation.
+     * Capture a snapshot for cross-thread propagation. It's a similar concept with ActiveSpan.Continuation in
+     * OpenTracing-java How to build, depends on the implementation.
      *
      * @return the {@link ContextSnapshot} , which includes the reference context.
      * @see {@link TracingContext} and {@link IgnoredTracerContext}
@@ -40,8 +40,8 @@ public interface AbstractTracerContext {
     ContextSnapshot capture();
 
     /**
-     * Build the reference between this segment and a cross-thread segment.
-     * How to build, depends on the implementation.
+     * Build the reference between this segment and a cross-thread segment. How to build, depends on the
+     * implementation.
      *
      * @param snapshot from {@link #capture()} in the parent thread.
      * @see {@link TracingContext} and {@link IgnoredTracerContext}
@@ -49,8 +49,7 @@ public interface AbstractTracerContext {
     void continued(ContextSnapshot snapshot);
 
     /**
-     * Get the global trace id, if needEnhance.
-     * How to build, depends on the implementation.
+     * Get the global trace id, if needEnhance. How to build, depends on the implementation.
      *
      * @return the string represents the id.
      * @see {@link TracingContext} and {@link IgnoredTracerContext}
@@ -96,4 +95,9 @@ public interface AbstractTracerContext {
      * @param span to finish
      */
     void stopSpan(AbstractSpan span);
+
+    /**
+     * @return the active spans of current tracing context(stack)
+     */
+    List<AbstractTracingSpan> activeSpans();
 }
