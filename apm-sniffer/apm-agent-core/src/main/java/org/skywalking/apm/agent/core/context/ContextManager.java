@@ -1,6 +1,5 @@
 package org.skywalking.apm.agent.core.context;
 
-import java.util.LinkedList;
 import java.util.List;
 import org.skywalking.apm.agent.core.boot.BootService;
 import org.skywalking.apm.agent.core.boot.ServiceManager;
@@ -18,9 +17,7 @@ import org.skywalking.apm.util.StringUtil;
 /**
  * {@link ContextManager} controls the whole context of {@link TraceSegment}. Any {@link TraceSegment} relates to
  * single-thread, so this context use {@link ThreadLocal} to maintain the context, and make sure, since a {@link
- * TraceSegment} starts, all ChildOf spans are in the same context.
- * <p>
- * What is 'ChildOf'? {@see
+ * TraceSegment} starts, all ChildOf spans are in the same context. <p> What is 'ChildOf'? {@see
  * https://github.com/opentracing/specification/blob/master/specification.md#references-between-spans}
  *
  * <p> Also, {@link ContextManager} delegates to all {@link AbstractTracerContext}'s major methods.
@@ -155,7 +152,7 @@ public class ContextManager implements TracingContextListener, BootService, Igno
         get().stopSpan(span);
     }
 
-    public static List<AbstractTracingSpan> activeSpans(){
+    public static List<AbstractTracingSpan> activeSpans() {
         return get().activeSpans();
     }
 
@@ -163,7 +160,6 @@ public class ContextManager implements TracingContextListener, BootService, Igno
     public void beforeBoot() throws Throwable {
 
     }
-
 
     @Override
     public void boot() {

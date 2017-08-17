@@ -1,8 +1,10 @@
 package org.skywalking.apm.agent.core.context;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import org.skywalking.apm.agent.core.context.trace.AbstractSpan;
+import org.skywalking.apm.agent.core.context.trace.AbstractTracingSpan;
 import org.skywalking.apm.agent.core.context.trace.NoopSpan;
 
 /**
@@ -74,6 +76,10 @@ public class IgnoredTracerContext implements AbstractTracerContext {
         if (stackDepth == 0) {
             ListenerManager.notifyFinish(this);
         }
+    }
+
+    @Override public List<AbstractTracingSpan> activeSpans() {
+        return new ArrayList<AbstractTracingSpan>();
     }
 
     public static class ListenerManager {

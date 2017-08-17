@@ -23,8 +23,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
  * The <code>ControllerServiceMethodInterceptor</code> only use the first mapping value.
- *
- * @See {@link ControllerConstructorInterceptor} to explain why we are doing this.
  */
 public class ControllerServiceMethodInterceptor implements InstanceMethodsAroundInterceptor {
     private ILog logger = LogManager.getLogger(ControllerServiceMethodInterceptor.class);
@@ -43,6 +41,14 @@ public class ControllerServiceMethodInterceptor implements InstanceMethodsAround
             }
             pathMappingCache.addPathMapping(method, requestURL);
         }
+        List<AbstractTracingSpan> activeSpans = ContextManager.activeSpans();
+        if (activeSpans.size() != 1) {
+            StringBuilder logInfo = new StringBuilder("ControllerServiceMethodInterceptor.beforeMethod [\n");
+            for (AbstractTracingSpan activeSpan : activeSpans) {
+                logInfo.append("<" + activeSpan.getParentSpanId() + "," + activeSpan.getSpanId() + ">\t" + activeSpan.getOperationId() + "\n");
+            }
+            logger.info(logInfo + "]");
+        }
 
         HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
         String tracingHeaderValue = request.getHeader(Config.Plugin.Propagation.HEADER_NAME);
@@ -52,14 +58,23 @@ public class ControllerServiceMethodInterceptor implements InstanceMethodsAround
         Tags.HTTP.METHOD.set(span, request.getMethod());
         span.setComponent(ComponentsDefine.SPRING_MVC_ANNOTATION);
         SpanLayer.asHttp(span);
+
+        activeSpans = ContextManager.activeSpans();
+        if (activeSpans.size() != 1) {
+            StringBuilder logInfo = new StringBuilder("ControllerServiceMethodInterceptor.beforeMethod-createSpan [\n");
+            for (AbstractTracingSpan activeSpan : activeSpans) {
+                logInfo.append("<" + activeSpan.getParentSpanId() + "," + activeSpan.getSpanId() + ">\t" + activeSpan.getOperationId() + "\n");
+            }
+            logger.info(logInfo + "]");
+        }
     }
 
     @Override
     public Object afterMethod(EnhancedInstance objInst, Method method, Object[] allArguments, Class<?>[] argumentsTypes,
         Object ret) throws Throwable {
         List<AbstractTracingSpan> activeSpans = ContextManager.activeSpans();
-        if (activeSpans.size() != 1){
-            StringBuilder logInfo = new StringBuilder("[\n");
+        if (activeSpans.size() != 1) {
+            StringBuilder logInfo = new StringBuilder("ControllerServiceMethodInterceptor.afterMethod [\n");
             for (AbstractTracingSpan span : activeSpans) {
                 logInfo.append("<" + span.getParentSpanId() + "," + span.getSpanId() + ">\t" + span.getOperationId() + "\n");
             }
@@ -74,11 +89,19 @@ public class ControllerServiceMethodInterceptor implements InstanceMethodsAround
             Tags.STATUS_CODE.set(span, Integer.toString(response.getStatus()));
         }
         ContextManager.stopSpan();
+        if (activeSpans.size() != 1) {
+            StringBuilder logInfo = new StringBuilder("ControllerServiceMethodInterceptor.afterMethod-stopSpan [\n");
+            for (AbstractTracingSpan activeSpan : activeSpans) {
+                logInfo.append("<" + activeSpan.getParentSpanId() + "," + activeSpan.getSpanId() + ">\t" + activeSpan.getOperationId() + "\n");
+            }
+            logger.info(logInfo + "]");
+        }
         return ret;
     }
 
     @Override public void handleMethodException(EnhancedInstance objInst, Method method, Object[] allArguments,
         Class<?>[] argumentsTypes, Throwable t) {
+        logger.info("JedisMethodInterceptor occur exception.");
         ContextManager.activeSpan().errorOccurred().log(t);
     }
 }

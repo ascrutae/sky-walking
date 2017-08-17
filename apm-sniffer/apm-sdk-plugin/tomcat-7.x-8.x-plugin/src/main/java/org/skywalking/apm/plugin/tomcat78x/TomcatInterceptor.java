@@ -44,7 +44,24 @@ public class TomcatInterceptor implements InstanceMethodsAroundInterceptor {
         HttpServletRequest request = (HttpServletRequest)allArguments[0];
         String tracingHeaderValue = request.getHeader(Config.Plugin.Propagation.HEADER_NAME);
         ContextCarrier contextCarrier = new ContextCarrier().deserialize(tracingHeaderValue);
+        List<AbstractTracingSpan> activeSpans = ContextManager.activeSpans();
+        if (activeSpans.size() != 0) {
+            StringBuilder logInfo = new StringBuilder("TomcatInterceptor.beforeMethod[\n");
+            for (AbstractTracingSpan span : activeSpans) {
+                logInfo.append("<" + span.getParentSpanId() + "," + span.getSpanId() + ">\t" + span.getOperationId() + "\n");
+            }
+            logger.info(logInfo + "]");
+        }
+
         AbstractSpan span = ContextManager.createEntrySpan(request.getRequestURI(), contextCarrier);
+        activeSpans = ContextManager.activeSpans();
+        if (activeSpans.size() != 1) {
+            StringBuilder logInfo = new StringBuilder("TomcatInterceptor.beforeMethod-createSpan [\n");
+            for (AbstractTracingSpan activeSpan : activeSpans) {
+                logInfo.append("<" + activeSpan.getParentSpanId() + "," + activeSpan.getSpanId() + ">\t" + activeSpan.getOperationId() + "\n");
+            }
+            logger.info(logInfo + "]");
+        }
         Tags.URL.set(span, request.getRequestURL().toString());
         Tags.HTTP.METHOD.set(span, request.getMethod());
         span.setComponent(ComponentsDefine.TOMCAT);
@@ -55,8 +72,8 @@ public class TomcatInterceptor implements InstanceMethodsAroundInterceptor {
     @Override public Object afterMethod(EnhancedInstance objInst, Method method, Object[] allArguments,
         Class<?>[] argumentsTypes, Object ret) throws Throwable {
         List<AbstractTracingSpan> activeSpans = ContextManager.activeSpans();
-        if (activeSpans.size() != 1){
-            StringBuilder logInfo = new StringBuilder("[\n");
+        if (activeSpans.size() != 1) {
+            StringBuilder logInfo = new StringBuilder("TomcatInterceptor.afterMethod [\n");
             for (AbstractTracingSpan span : activeSpans) {
                 logInfo.append("<" + span.getParentSpanId() + "," + span.getSpanId() + ">\t" + span.getOperationId() + "\n");
             }
@@ -70,11 +87,19 @@ public class TomcatInterceptor implements InstanceMethodsAroundInterceptor {
             Tags.STATUS_CODE.set(span, Integer.toString(response.getStatus()));
         }
         ContextManager.stopSpan();
+        if (activeSpans.size() != 0) {
+            StringBuilder logInfo = new StringBuilder("TomcatInterceptor.afterMethod-stopSpan [\n");
+            for (AbstractTracingSpan activeSpan : activeSpans) {
+                logInfo.append("<" + activeSpan.getParentSpanId() + "," + activeSpan.getSpanId() + ">\t" + activeSpan.getOperationId() + "\n");
+            }
+            logger.info(logInfo + "]");
+        }
         return ret;
     }
 
     @Override public void handleMethodException(EnhancedInstance objInst, Method method, Object[] allArguments,
         Class<?>[] argumentsTypes, Throwable t) {
+        logger.info("JedisMethodInterceptor occur exception.");
         AbstractSpan span = ContextManager.activeSpan();
         span.log(t);
         span.errorOccurred();
