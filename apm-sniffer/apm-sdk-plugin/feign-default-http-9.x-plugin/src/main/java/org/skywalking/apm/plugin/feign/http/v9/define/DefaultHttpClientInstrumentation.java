@@ -9,13 +9,13 @@ import org.skywalking.apm.agent.core.plugin.match.ClassMatch;
 import org.skywalking.apm.plugin.feign.http.v9.DefaultHttpClientInterceptor;
 
 import static net.bytebuddy.matcher.ElementMatchers.named;
-import static org.skywalking.apm.agent.core.plugin.match.NameMatch.byName;
+import static org.skywalking.apm.agent.core.plugin.match.HierarchyMatch.byHierarchyMatch;
 
 /**
- * {@link DefaultHttpClientInstrumentation} presents that skywalking intercepts {@link
- * feign.Client.Default#execute(feign.Request, feign.Request.Options)} by using {@link DefaultHttpClientInterceptor}.
- * If feign did't run in default mode, the instrumentation depend on the http discovery implementation.
- * e.g. okhttp discovery implementation depend on okhttp-plugin.
+ * {@link DefaultHttpClientInstrumentation} presents that skywalking intercepts the execute() method in the class that
+ * hierarchy {@link feign.Client} by using {@link DefaultHttpClientInterceptor}. If feign did't run in default mode, the
+ * instrumentation depend on the http discovery implementation. e.g. okhttp discovery implementation depend on
+ * okhttp-plugin.
  *
  * @author pengys5
  */
@@ -24,7 +24,7 @@ public class DefaultHttpClientInstrumentation extends ClassInstanceMethodsEnhanc
     /**
      * Enhance class.
      */
-    private static final String ENHANCE_CLASS = "feign.Client$Default";
+    private static final String ENHANCE_CLASS = "feign.Client";
 
     /**
      * Intercept class.
@@ -32,7 +32,7 @@ public class DefaultHttpClientInstrumentation extends ClassInstanceMethodsEnhanc
     private static final String INTERCEPT_CLASS = "org.skywalking.apm.plugin.feign.http.v9.DefaultHttpClientInterceptor";
 
     @Override protected ClassMatch enhanceClass() {
-        return byName(ENHANCE_CLASS);
+        return byHierarchyMatch(new String[] {ENHANCE_CLASS});
     }
 
     @Override protected ConstructorInterceptPoint[] getConstructorsInterceptPoints() {

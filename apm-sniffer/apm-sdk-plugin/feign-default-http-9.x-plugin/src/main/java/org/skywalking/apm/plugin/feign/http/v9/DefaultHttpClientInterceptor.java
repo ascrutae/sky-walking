@@ -33,10 +33,9 @@ public class DefaultHttpClientInterceptor implements InstanceMethodsAroundInterc
     private static final String COMPONENT_NAME = "FeignDefaultHttp";
 
     /**
-     * Get the {@link feign.Request} from {@link EnhancedInstance}, then create {@link AbstractSpan} and set host,
-     * port, kind, component, url from {@link feign.Request}.
-     * Through the reflection of the way, set the http header of context data into {@link feign.Request#headers}.
-     *
+     * Get the {@link feign.Request} from {@link EnhancedInstance}, then create {@link AbstractSpan} and set host, port,
+     * kind, component, url from {@link feign.Request}. Through the reflection of the way, set the http header of
+     * context data into {@link feign.Request#headers}.
      *
      * @param method
      * @param result change this result, if you want to truncate the method.
@@ -73,9 +72,7 @@ public class DefaultHttpClientInterceptor implements InstanceMethodsAroundInterc
 
     /**
      * Get the status code from {@link Response}, when status code greater than 400, it means there was some errors in
-     * the server.
-     * Finish the {@link AbstractSpan}.
-     *
+     * the server. Finish the {@link AbstractSpan}.
      *
      * @param method
      * @param ret the method's original return value.
@@ -85,12 +82,15 @@ public class DefaultHttpClientInterceptor implements InstanceMethodsAroundInterc
     @Override public Object afterMethod(EnhancedInstance objInst, Method method, Object[] allArguments,
         Class<?>[] argumentsTypes, Object ret) throws Throwable {
         Response response = (Response)ret;
-        int statusCode = response.status();
-
         AbstractSpan span = ContextManager.activeSpan();
-        if (statusCode >= 400) {
+        if (response != null) {
+            int statusCode = response.status();
+            if (statusCode >= 400) {
+                span.errorOccurred();
+                Tags.STATUS_CODE.set(span, statusCode + "");
+            }
+        } else {
             span.errorOccurred();
-            Tags.STATUS_CODE.set(span, statusCode + "");
         }
 
         ContextManager.stopSpan();
