@@ -89,7 +89,7 @@ public class OnSuccessInterceptorTest {
 
         AbstractTracingSpan successSpan = spans.get(0);
 
-        SpanAssert.assertComponent(successSpan, ComponentsDefine.ROCKET_MQ);
+        SpanAssert.assertComponent(successSpan, ComponentsDefine.ROCKET_MQ_CONSUMER);
 
     }
 
@@ -106,7 +106,7 @@ public class OnSuccessInterceptorTest {
 
         AbstractTracingSpan successSpan = spans.get(0);
 
-        SpanAssert.assertComponent(successSpan, ComponentsDefine.ROCKET_MQ);
+        SpanAssert.assertComponent(successSpan, ComponentsDefine.ROCKET_MQ_CONSUMER);
         SpanAssert.assertOccurException(successSpan, true);
 
     }

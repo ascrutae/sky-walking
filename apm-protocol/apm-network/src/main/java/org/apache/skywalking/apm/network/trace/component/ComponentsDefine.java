@@ -84,6 +84,18 @@ public class ComponentsDefine {
 
     public static final OfficialComponent HYSTRIX =  new OfficialComponent(29, "Hystrix");
 
+    public static final OfficialComponent JEDIS =  new OfficialComponent(30, "Jedis");
+
+    public static final OfficialComponent KAFKA_PRODUCER = new OfficialComponent(32, "KafkaProducer");
+
+    public static final OfficialComponent KAFKA_CONSUMER =  new OfficialComponent(33, "KafkaConsumer");
+
+    public static final OfficialComponent ROCKET_MQ_PRODUCER = new OfficialComponent(34, "RocketMQProducer");
+
+    public static final OfficialComponent ROCKET_MQ_CONSUMER = new OfficialComponent(35, "RocketMQConsumer");
+
+    public static final OfficialComponent MYSQL_CONNECTOR_JAVA = new OfficialComponent(36, "mysql-connector-java");
+
     private static ComponentsDefine INSTANCE = new ComponentsDefine();
 
     private String[] components;
@@ -93,7 +105,7 @@ public class ComponentsDefine {
     }
 
     public ComponentsDefine() {
-        components = new String[30];
+        components = new String[36];
         addComponent(TOMCAT);
         addComponent(HTTPCLIENT);
         addComponent(DUBBO);
@@ -123,6 +135,12 @@ public class ComponentsDefine {
         addComponent(KAFKA);
         addComponent(SERVICECOMB);
         addComponent(HYSTRIX);
+        addComponent(JEDIS);
+        addComponent(KAFKA_CONSUMER);
+        addComponent(KAFKA_PRODUCER);
+        addComponent(ROCKET_MQ_PRODUCER);
+        addComponent(ROCKET_MQ_CONSUMER);
+        addComponent(MYSQL_CONNECTOR_JAVA);
     }
 
     private void addComponent(OfficialComponent component) {

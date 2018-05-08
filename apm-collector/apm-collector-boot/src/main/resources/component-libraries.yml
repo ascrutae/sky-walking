@@ -123,7 +123,21 @@ Jedis:
 SQLite:
   id: 31
   languages: Java,C#
-
+KafkaProducer:
+  id: 32
+  languages: Java
+KafkaConsumer:
+  id: 33
+  languages: Java
+RocketMQProducer:
+  id: 34
+  languages: Java
+RocketMQConsumer:
+  id: 35
+  languages: Java
+MysqlConnectorJava:
+  id: 36
+  languages: Java
 
 # .NET/.NET Core components
 # [3000, 4000) for C#/.NET only
@@ -184,6 +198,11 @@ express:
 # Jedis is a client library in Java for Redis server
 Component-Server-Mappings:
   Jedis: Redis
+  KafkaConsumer: Kafka
+  KafkaProducer: Kafka
+  RocketMQProducer: RocketMQ
+  RocketMQConsumer: RocketMQ
+  MysqlConnectorJava: Mysql
   StackExchange.Redis: Redis
   SqlClient: SqlServer
   Npgsql: PostgreSQL
