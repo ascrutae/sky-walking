@@ -194,4 +194,8 @@ public class TraceSegment {
     public int getApplicationInstanceId() {
         return RemoteDownstreamConfig.Agent.APPLICATION_INSTANCE_ID;
     }
+
+    public List<AbstractTracingSpan> finishedSpans() {
+        return spans;
+    }
 }

@@ -22,7 +22,12 @@ import io.netty.util.internal.ConcurrentSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.skywalking.apm.network.language.agent.*;
+import org.apache.skywalking.apm.network.language.agent.ServiceNameCollection;
+import org.apache.skywalking.apm.network.language.agent.ServiceNameDiscoveryServiceGrpc;
+import org.apache.skywalking.apm.network.language.agent.ServiceNameElement;
+import org.apache.skywalking.apm.network.language.agent.ServiceNameMappingCollection;
+import org.apache.skywalking.apm.network.language.agent.ServiceNameMappingElement;
+import org.apache.skywalking.apm.network.language.agent.SpanType;
 
 import static org.apache.skywalking.apm.agent.core.conf.Config.Dictionary.OPERATION_NAME_BUFFER_SIZE;
 
@@ -32,6 +37,7 @@ import static org.apache.skywalking.apm.agent.core.conf.Config.Dictionary.OPERAT
 public enum OperationNameDictionary {
     INSTANCE;
     private Map<OperationNameKey, Integer> operationNameDictionary = new ConcurrentHashMap<OperationNameKey, Integer>();
+    private Map<Integer, OperationNameKey> converseOperationNameDictionary = new ConcurrentHashMap<Integer, OperationNameKey>();
     private Set<OperationNameKey> unRegisterOperationNames = new ConcurrentSet<OperationNameKey>();
 
     public PossibleFound findOrPrepare4Register(int applicationId, String operationName,
@@ -61,6 +67,10 @@ public enum OperationNameDictionary {
         }
     }
 
+    public OperationNameKey findByOperationId(int operationId) {
+        return converseOperationNameDictionary.get(operationId);
+    }
+
     public void syncRemoteDictionary(
         ServiceNameDiscoveryServiceGrpc.ServiceNameDiscoveryServiceBlockingStub serviceNameDiscoveryServiceBlockingStub) {
         if (unRegisterOperationNames.size() > 0) {
@@ -84,12 +94,13 @@ public enum OperationNameDictionary {
                         SpanType.Exit.equals(element.getSrcSpanType()));
                     unRegisterOperationNames.remove(key);
                     operationNameDictionary.put(key, serviceNameMappingElement.getServiceId());
+                    converseOperationNameDictionary.put(serviceNameMappingElement.getServiceId(), key);
                 }
             }
         }
     }
 
-    private class OperationNameKey {
+    public class OperationNameKey {
         private int applicationId;
         private String operationName;
         private boolean isEntry;

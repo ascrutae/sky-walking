@@ -25,10 +25,10 @@ import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcContext;
 import java.lang.reflect.Method;
-import org.apache.skywalking.apm.agent.core.context.ContextCarrier;
-import org.apache.skywalking.apm.agent.core.context.tag.Tags;
 import org.apache.skywalking.apm.agent.core.context.CarrierItem;
+import org.apache.skywalking.apm.agent.core.context.ContextCarrier;
 import org.apache.skywalking.apm.agent.core.context.ContextManager;
+import org.apache.skywalking.apm.agent.core.context.tag.Tags;
 import org.apache.skywalking.apm.agent.core.context.trace.AbstractSpan;
 import org.apache.skywalking.apm.agent.core.context.trace.SpanLayer;
 import org.apache.skywalking.apm.agent.core.plugin.interceptor.enhance.EnhancedInstance;
@@ -99,6 +99,11 @@ public class DubboInterceptor implements InstanceMethodsAroundInterceptor {
         }
 
         ContextManager.stopSpan();
+        RpcContext rpcContext = RpcContext.getContext();
+        boolean isConsumer = rpcContext.isConsumerSide();
+        if (!isConsumer) {
+            ContextManager.inspectSegment();
+        }
         return ret;
     }
 
@@ -140,8 +145,7 @@ public class DubboInterceptor implements InstanceMethodsAroundInterceptor {
     }
 
     /**
-     * Format request url.
-     * e.g. dubbo://127.0.0.1:20880/org.apache.skywalking.apm.plugin.test.Test.test(String).
+     * Format request url. e.g. dubbo://127.0.0.1:20880/org.apache.skywalking.apm.plugin.test.Test.test(String).
      *
      * @return request url.
      */

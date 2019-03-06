@@ -18,6 +18,7 @@
 
 package org.apache.skywalking.apm.agent.core.context.trace;
 
+import java.util.List;
 import java.util.Map;
 import org.apache.skywalking.apm.network.trace.component.Component;
 import org.apache.skywalking.apm.network.trace.component.ComponentsDefine;
@@ -106,6 +107,8 @@ public interface AbstractSpan {
 
     int getOperationId();
 
+    int getParentSpanId();
+
     String getOperationName();
 
     AbstractSpan setOperationId(int operationId);
@@ -118,4 +121,10 @@ public interface AbstractSpan {
     void ref(TraceSegmentRef ref);
 
     AbstractSpan start(long starttime);
+
+    long startTime();
+
+    long endTime();
+
+    List<TraceSegmentRef> refs();
 }

@@ -42,8 +42,8 @@ import org.apache.skywalking.apm.network.trace.component.ComponentsDefine;
 public class TomcatInvokeInterceptor implements InstanceMethodsAroundInterceptor {
 
     /**
-     * * The {@link TraceSegment#refs} of current trace segment will reference to the
-     * trace segment id of the previous level if the serialized context is not null.
+     * * The {@link TraceSegment#refs} of current trace segment will reference to the trace segment id of the previous
+     * level if the serialized context is not null.
      *
      * @param objInst
      * @param method
@@ -82,6 +82,8 @@ public class TomcatInvokeInterceptor implements InstanceMethodsAroundInterceptor
         }
         ContextManager.stopSpan();
         ContextManager.getRuntimeContext().remove(Constants.FORWARD_REQUEST_FLAG);
+
+        ContextManager.inspectSegment();
         return ret;
     }
 

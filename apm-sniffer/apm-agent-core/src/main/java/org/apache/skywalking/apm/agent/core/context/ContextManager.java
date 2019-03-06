@@ -44,6 +44,7 @@ public class ContextManager implements TracingContextListener, BootService, Igno
     private static ThreadLocal<AbstractTracerContext> CONTEXT = new ThreadLocal<AbstractTracerContext>();
     private static ThreadLocal<RuntimeContext> RUNTIME_CONTEXT = new ThreadLocal<RuntimeContext>();
     private static ContextManagerExtendService EXTEND_SERVICE;
+    private static long LAST_INSPECT_TIME = 0;
 
     private static AbstractTracerContext getOrCreate(String operationName, boolean forceSampling) {
         AbstractTracerContext context = CONTEXT.get();
@@ -59,7 +60,7 @@ public class ContextManager implements TracingContextListener, BootService, Igno
             } else {
                 if (RemoteDownstreamConfig.Agent.APPLICATION_ID != DictionaryUtil.nullValue()
                     && RemoteDownstreamConfig.Agent.APPLICATION_INSTANCE_ID != DictionaryUtil.nullValue()
-                    ) {
+                ) {
                     context = EXTEND_SERVICE.createTraceContext(operationName, forceSampling);
                 } else {
                     /**
@@ -206,5 +207,17 @@ public class ContextManager implements TracingContextListener, BootService, Igno
         }
 
         return runtimeContext;
+    }
+
+    public static void inspectSegment() {
+        AbstractTracerContext tracerContext = get();
+        if (tracerContext == null ||
+            (tracerContext instanceof IgnoredTracerContext) ||
+            (System.currentTimeMillis() - LAST_INSPECT_TIME <= 5 * 60 * 1000)) {
+            return;
+        }
+
+        logger.info("Current segment: {}", tracerContext.inspectSegment());
+        LAST_INSPECT_TIME = System.currentTimeMillis();
     }
 }

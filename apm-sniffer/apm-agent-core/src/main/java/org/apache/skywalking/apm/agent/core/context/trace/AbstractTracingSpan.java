@@ -203,6 +203,10 @@ public abstract class AbstractTracingSpan implements AbstractSpan {
         return operationId;
     }
 
+    @Override public int getParentSpanId() {
+        return this.parentSpanId;
+    }
+
     @Override
     public String getOperationName() {
         return operationName;
@@ -242,6 +246,18 @@ public abstract class AbstractTracingSpan implements AbstractSpan {
     public AbstractSpan start(long startTime) {
         this.startTime = startTime;
         return this;
+    }
+
+    @Override public long startTime() {
+        return startTime;
+    }
+
+    @Override public long endTime() {
+        return endTime;
+    }
+
+    @Override public List<TraceSegmentRef> refs() {
+        return null;
     }
 
     public SpanObject.Builder transform() {

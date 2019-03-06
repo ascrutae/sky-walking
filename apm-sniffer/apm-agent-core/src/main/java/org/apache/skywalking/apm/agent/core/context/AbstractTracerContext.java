@@ -105,4 +105,9 @@ public interface AbstractTracerContext {
      */
     void stopSpan(AbstractSpan span);
 
+    /**
+     *
+     * @return
+     */
+    String inspectSegment();
 }
