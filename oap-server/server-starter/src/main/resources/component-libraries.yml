@@ -216,6 +216,9 @@ spring-cloud-gateway:
 RESTEasy:
   id: 62
   languages: Java
+Weblogic:
+  id: 63
+  languages: Java
 
 # .NET/.NET Core components
 # [3000, 4000) for C#/.NET only
