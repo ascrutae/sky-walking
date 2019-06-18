@@ -216,9 +216,6 @@ spring-cloud-gateway:
 RESTEasy:
   id: 62
   languages: Java
-Weblogic:
-  id: 63
-  languages: Java
 
 # .NET/.NET Core components
 # [3000, 4000) for C#/.NET only
@@ -285,6 +282,10 @@ Egg:
 Koa:
   id: 4004
   languages: Node.js
+
+Weblogic:
+  id: 10001
+  languages: Java
 
 # Component Server mapping defines the server display names of some components
 # e.g.

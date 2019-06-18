@@ -122,7 +122,7 @@ public class ComponentsDefine {
 
     public static final OfficialComponent RESTEASY =  new OfficialComponent(62, "RESTEasy");
 
-    public static final OfficialComponent WEBLOGIC = new OfficialComponent(63, "Weblogic");
+    public static final OfficialComponent WEBLOGIC = new OfficialComponent(10001, "Weblogic");
 
     private static ComponentsDefine INSTANCE = new ComponentsDefine();
 
