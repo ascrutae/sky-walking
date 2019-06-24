@@ -105,9 +105,9 @@ public class ComponentsDefine {
     public static final OfficialComponent RABBITMQ_CONSUMER = new OfficialComponent(53,"rabbitmq-consumer");
 
     public static final OfficialComponent CANAL = new OfficialComponent(54,"Canal");
-
+  
     public static final OfficialComponent GSON = new OfficialComponent(55,"Gson");
-
+  
     public static final OfficialComponent REDISSON =  new OfficialComponent(56, "Redisson");
 
     public static final OfficialComponent LETTUCE =  new OfficialComponent(57, "Lettuce");
@@ -121,6 +121,8 @@ public class ComponentsDefine {
     public static final OfficialComponent SPRING_CLOUD_GATEWAY =  new OfficialComponent(61, "spring-cloud-gateway");
 
     public static final OfficialComponent RESTEASY =  new OfficialComponent(62, "RESTEasy");
+
+    public static final OfficialComponent SOLRJ =  new OfficialComponent(63, "solrj");
 
     public static final OfficialComponent WEBLOGIC = new OfficialComponent(10001, "Weblogic");
 
@@ -181,7 +183,6 @@ public class ComponentsDefine {
         addComponent(VERTX);
         addComponent(SPRING_CLOUD_GATEWAY);
         addComponent(RESTEASY);
-        addComponent(WEBLOGIC);
     }
 
     private void addComponent(OfficialComponent component) {
