@@ -147,4 +147,6 @@ public class ComponentsDefine {
     public static final OfficialComponent REST_HIGH_LEVEL_CLIENT = new OfficialComponent(77, "rest-high-level-client");
 
     public static final OfficialComponent SPRING_TX = new OfficialComponent(78, "spring-tx");
+
+    public static final OfficialComponent SQLSERVER_JDBC_DRIVER = new OfficialComponent(79, "sqljdbc4");
 }
