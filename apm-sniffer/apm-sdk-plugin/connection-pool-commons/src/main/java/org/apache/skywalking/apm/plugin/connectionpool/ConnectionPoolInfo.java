@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.skywalking.apm.agent.core.pool.connections;
+package org.apache.skywalking.apm.plugin.connectionpool;
 
-public class ObjectHadBeenRecycledException extends Exception {
+public interface ConnectionPoolInfo {
+
+    void recordGetConnectionTime(long time);
+
+    void recordGetConnectionStatue(boolean failed);
 }

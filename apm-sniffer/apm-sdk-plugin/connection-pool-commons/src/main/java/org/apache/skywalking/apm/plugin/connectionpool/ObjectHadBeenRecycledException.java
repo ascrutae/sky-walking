@@ -15,23 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.skywalking.apm.plugin.hikaricp.define;
+package org.apache.skywalking.apm.plugin.connectionpool;
 
-import com.zaxxer.hikari.pool.HikariPool;
-import org.apache.skywalking.apm.plugin.connectionpool.PoolCapabilityMetricValueRecorder;
-
-public class HikariPoolMetricValueRecorderSingle extends PoolCapabilityMetricValueRecorder<HikariPool> {
-    public HikariPoolMetricValueRecorderSingle(final HikariPool connectionPool) {
-        super(connectionPool);
-    }
-
-    @Override
-    protected Double realGetActiveConnections(final HikariPool hikariPool) throws Throwable {
-        return Double.valueOf(hikariPool.getActiveConnections());
-    }
-
-    @Override
-    protected Double realGetThreadsAwaitingConnection(final HikariPool hikariPool) throws Throwable {
-        return Double.valueOf(hikariPool.getThreadsAwaitingConnection());
-    }
+public class ObjectHadBeenRecycledException extends Exception {
 }

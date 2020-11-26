@@ -143,7 +143,8 @@ public class Config {
          */
         public static long HEARTBEAT_PERIOD = 30;
         /**
-         * The agent sends the instance properties to the backend every `collector.heartbeat_period * collector.properties_report_period_factor` seconds
+         * The agent sends the instance properties to the backend every `collector.heartbeat_period *
+         * collector.properties_report_period_factor` seconds
          */
         public static int PROPERTIES_REPORT_PERIOD_FACTOR = 10;
         /**
@@ -319,18 +320,5 @@ public class Config {
          * Tag the span by the key/value in the correlation context, when the keys listed here exist.
          */
         public static String AUTO_TAG_KEYS = "";
-    }
-
-    public static class ConnectionPool {
-        /**
-         * If true, skywalking agent will enable to monitor connection pool. Otherwise disable to monitor connection
-         * pool.
-         */
-        public static boolean ACTIVE = true;
-
-        /**
-         * interval of fetching data connection pool value
-         */
-        public static int INTERVAL = 5;
     }
 }

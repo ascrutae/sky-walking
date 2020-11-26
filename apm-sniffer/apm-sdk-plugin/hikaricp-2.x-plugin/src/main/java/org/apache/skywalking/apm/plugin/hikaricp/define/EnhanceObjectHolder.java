@@ -17,7 +17,7 @@
 
 package org.apache.skywalking.apm.plugin.hikaricp.define;
 
-import org.apache.skywalking.apm.agent.core.pool.connections.ConnectionPoolInfo;
+import org.apache.skywalking.apm.plugin.connectionpool.ConnectionPoolInfo;
 
 public class EnhanceObjectHolder {
 

@@ -107,6 +107,7 @@
         <module>dbcp-2.x-plugin</module>
         <module>mssql-jtds-1.x-plugin</module>
         <module>mssql-jdbc-plugin</module>
+        <module>connection-pool-commons</module>
     </modules>
     <packaging>pom</packaging>
 

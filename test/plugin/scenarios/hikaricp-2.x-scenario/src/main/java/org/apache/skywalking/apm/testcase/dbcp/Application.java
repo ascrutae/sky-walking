@@ -13,30 +13,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package org.apache.skywalking.apm.agent.core.pool.connections;
+package org.apache.skywalking.apm.testcase.dbcp;
 
-import org.apache.skywalking.apm.agent.core.meter.MeterService;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-public interface ConnectionPoolInfo {
-    default void registerToMeterSystem(MeterService meterService) {
+@SpringBootApplication
+public class Application {
 
-    }
-
-    default void unregisterFromMeterSystem() {
-
-    }
-
-    default void recordPoolCapabilityMetricValue() throws ObjectHadBeenRecycledException {
-
-    }
-
-    default void recordGetConnectionTime(long time) {
-
-    }
-
-    default void recordGetConnectionStatue(boolean failed) {
-
+    public static void main(String[] args) {
+        try {
+            SpringApplication.run(Application.class, args);
+        } catch (Exception e) {
+            // Never do this
+        }
     }
 }

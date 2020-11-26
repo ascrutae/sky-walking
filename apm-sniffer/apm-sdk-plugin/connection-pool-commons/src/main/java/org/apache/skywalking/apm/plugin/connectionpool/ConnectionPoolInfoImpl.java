@@ -15,13 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.skywalking.apm.agent.core.pool.connections;
+package org.apache.skywalking.apm.plugin.connectionpool;
 
-import com.google.common.util.concurrent.AtomicDouble;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.skywalking.apm.agent.core.boot.ServiceManager;
 import org.apache.skywalking.apm.agent.core.meter.Gauge;
 import org.apache.skywalking.apm.agent.core.meter.Histogram;
@@ -44,23 +42,16 @@ public class ConnectionPoolInfoImpl implements ConnectionPoolInfo {
     private final String poolId;
     private final List<MeterId> meterIds = new ArrayList<>();
     private final PoolCapabilityMetricValueRecorder recorder;
-
-    private AvgWindow awaitConnectionThreadNumberWindowA = new AvgWindow();
-    private AvgWindow awaitConnectionThreadNumberWindowB = new AvgWindow();
-
-    private AvgWindow activeCountWindowA = new AvgWindow();
-    private AvgWindow activeCountWindowB = new AvgWindow();
-
     private Histogram getConnectionLatencyHistogram;
     private FailureRateSupplier failureRateSupplier;
 
     public ConnectionPoolInfoImpl(final String poolId, PoolCapabilityMetricValueRecorder recorder) {
         this.poolId = poolId;
         this.recorder = recorder;
+        registerToMeterSystem(ServiceManager.INSTANCE.findService(MeterService.class));
     }
 
-    @Override
-    public void registerToMeterSystem(MeterService meterService) {
+    private void registerToMeterSystem(MeterService meterService) {
         this.meterIds.addAll(Arrays.asList(
             registerActiveCountMeter(meterService),
             registerAwaitConnectionThreadNumMeter(meterService),
@@ -70,15 +61,8 @@ public class ConnectionPoolInfoImpl implements ConnectionPoolInfo {
         ));
     }
 
-    @Override
-    public void unregisterFromMeterSystem() {
+    private void unregisterFromMeterSystem() {
         this.meterIds.forEach(meterId -> ServiceManager.INSTANCE.findService(MeterService.class).unregister(meterId));
-    }
-
-    @Override
-    public void recordPoolCapabilityMetricValue() throws ObjectHadBeenRecycledException {
-        activeCountWindowB.increase(recorder.getActiveConnections());
-        awaitConnectionThreadNumberWindowB.increase(recorder.getThreadsAwaitingConnection());
     }
 
     @Override
@@ -95,9 +79,12 @@ public class ConnectionPoolInfoImpl implements ConnectionPoolInfo {
         MeterId awaitConnectionThreadNumMeter = newAwaitConnectionThreadNumMeter(poolId);
         meterService.register(
             new Gauge(awaitConnectionThreadNumMeter, () -> {
-                awaitConnectionThreadNumberWindowA = awaitConnectionThreadNumberWindowB;
-                awaitConnectionThreadNumberWindowB = new AvgWindow();
-                return awaitConnectionThreadNumberWindowA.getData();
+                try {
+                    return recorder.getAwaitConnectionThreadNumber();
+                } catch (ObjectHadBeenRecycledException e) {
+                    unregisterFromMeterSystem();
+                    return 0d;
+                }
             }));
         return awaitConnectionThreadNumMeter;
     }
@@ -105,9 +92,12 @@ public class ConnectionPoolInfoImpl implements ConnectionPoolInfo {
     private MeterId registerActiveCountMeter(final MeterService meterService) {
         MeterId activeCountMeter = newActiveCountMeter(poolId);
         meterService.register(new Gauge(activeCountMeter, () -> {
-            activeCountWindowA = activeCountWindowB;
-            activeCountWindowB = new AvgWindow();
-            return activeCountWindowA.getData();
+            try {
+                return recorder.getActiveConnections();
+            } catch (ObjectHadBeenRecycledException e) {
+                unregisterFromMeterSystem();
+                return 0d;
+            }
         }));
         return activeCountMeter;
     }
@@ -150,24 +140,5 @@ public class ConnectionPoolInfoImpl implements ConnectionPoolInfo {
             CONNECTION_POOL_GET_CONNECTION_FAILURE_RATE, MeterType.HISTOGRAM, Arrays.asList(
             new MeterTag(POOL_ID, poolId)
         ));
-    }
-
-    private class AvgWindow {
-        private final AtomicDouble data;
-        private final AtomicInteger count;
-
-        public AvgWindow() {
-            this.data = new AtomicDouble();
-            this.count = new AtomicInteger();
-        }
-
-        public Double getData() {
-            return data.get() / this.count.get();
-        }
-
-        private void increase(final Double data) {
-            this.data.addAndGet(data);
-            this.count.incrementAndGet();
-        }
     }
 }

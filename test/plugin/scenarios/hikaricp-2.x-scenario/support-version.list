@@ -2,7 +2,7 @@
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
 # regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
+# to you under the Apache License, Version
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
 #
@@ -14,6 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-hikaricp-2.x=org.apache.skywalking.apm.plugin.hikaricp.define.HikariPoolInstrumentation
-hikaricp-2.x=org.apache.skywalking.apm.plugin.hikaricp.define.ConnectionProxyInstrumentation
-hikaricp-2.x=org.apache.skywalking.apm.plugin.hikaricp.define.ProxyConnectionInstrumentation
+2.8.0
+2.7.0
+2.6.0
+2.5.0
+2.4.0
+2.3.0
+2.2.0
+2.1.1
+2.0.1

@@ -24,13 +24,8 @@ import org.apache.skywalking.apm.agent.core.plugin.interceptor.enhance.EnhancedI
 import org.apache.skywalking.apm.agent.core.plugin.interceptor.enhance.InstanceMethodsAroundInterceptor;
 import org.apache.skywalking.apm.agent.core.plugin.interceptor.enhance.MethodInterceptResult;
 import org.apache.skywalking.apm.network.trace.component.ComponentsDefine;
-import org.apache.skywalking.apm.plugin.hikaricp.define.EnhanceObjectHolder;
 
-public class GetConnectionInterceptor implements InstanceMethodsAroundInterceptor {
-
-    public static final String GET_CONNECTION_TIME_FLAG = "_GET_TIME_START";
-    public static final String GET_CONNECTION_FAILURE_FLAG = "_GET_CONNECTION_FAILURE_FLAG";
-
+public class CloseConnectionInterceptor implements InstanceMethodsAroundInterceptor {
     @Override
     public void beforeMethod(final EnhancedInstance objInst,
                              final Method method,
@@ -39,11 +34,6 @@ public class GetConnectionInterceptor implements InstanceMethodsAroundIntercepto
                              final MethodInterceptResult result) throws Throwable {
         AbstractSpan span = ContextManager.createLocalSpan("HikariCP/Connection/" + method.getName());
         span.setComponent(ComponentsDefine.HIKARICP);
-
-        EnhanceObjectHolder objectHolder = (EnhanceObjectHolder) objInst.getSkyWalkingDynamicField();
-        if (objectHolder != null) {
-            ContextManager.getRuntimeContext().put(GET_CONNECTION_TIME_FLAG, System.nanoTime());
-        }
     }
 
     @Override
@@ -52,20 +42,7 @@ public class GetConnectionInterceptor implements InstanceMethodsAroundIntercepto
                               final Object[] allArguments,
                               final Class<?>[] argumentsTypes,
                               final Object ret) throws Throwable {
-        EnhanceObjectHolder objectHolder = (EnhanceObjectHolder) objInst.getSkyWalkingDynamicField();
-        if (objectHolder != null) {
-            try {
-                long startTime = (long) ContextManager.getRuntimeContext().get(GET_CONNECTION_TIME_FLAG);
-                objectHolder.recordGetConnectionTime((System.nanoTime() - startTime) / 1000);
-
-                objectHolder.recordGetConnectionStatue(
-                    ContextManager.getRuntimeContext().get(GET_CONNECTION_FAILURE_FLAG) != null);
-            } finally {
-                ContextManager.getRuntimeContext().remove(GET_CONNECTION_TIME_FLAG);
-                ContextManager.getRuntimeContext().remove(GET_CONNECTION_FAILURE_FLAG);
-            }
-        }
-
+        ContextManager.stopSpan();
         return ret;
     }
 
@@ -75,9 +52,6 @@ public class GetConnectionInterceptor implements InstanceMethodsAroundIntercepto
                                       final Object[] allArguments,
                                       final Class<?>[] argumentsTypes,
                                       final Throwable t) {
-        EnhanceObjectHolder objectHolder = (EnhanceObjectHolder) objInst.getSkyWalkingDynamicField();
-        if (objectHolder != null) {
-            ContextManager.getRuntimeContext().put(GET_CONNECTION_FAILURE_FLAG, true);
-        }
+
     }
 }

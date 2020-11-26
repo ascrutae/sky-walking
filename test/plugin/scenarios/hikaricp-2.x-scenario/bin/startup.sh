@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -14,6 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-hikaricp-2.x=org.apache.skywalking.apm.plugin.hikaricp.define.HikariPoolInstrumentation
-hikaricp-2.x=org.apache.skywalking.apm.plugin.hikaricp.define.ConnectionProxyInstrumentation
-hikaricp-2.x=org.apache.skywalking.apm.plugin.hikaricp.define.ProxyConnectionInstrumentation
+home="$(cd "$(dirname $0)"; pwd)"
+
+java -jar ${agent_opts} ${home}/../libs/hikaricp-2.x-scenario.jar &

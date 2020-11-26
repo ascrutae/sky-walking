@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.skywalking.apm.agent.core.pool.connections;
+package org.apache.skywalking.apm.plugin.connectionpool;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import java.util.function.Supplier;

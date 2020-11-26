@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.skywalking.apm.agent.core.pool.connections;
+package org.apache.skywalking.apm.plugin.connectionpool;
 
 import java.lang.ref.WeakReference;
 
@@ -38,7 +38,7 @@ public abstract class PoolCapabilityMetricValueRecorder<T> {
         }
     }
 
-    public final Double getThreadsAwaitingConnection() throws ObjectHadBeenRecycledException {
+    public final Double getAwaitConnectionThreadNumber() throws ObjectHadBeenRecycledException {
         try {
             return realGetThreadsAwaitingConnection(get());
         } catch (Throwable throwable) {

@@ -14,6 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-hikaricp-2.x=org.apache.skywalking.apm.plugin.hikaricp.define.HikariPoolInstrumentation
-hikaricp-2.x=org.apache.skywalking.apm.plugin.hikaricp.define.ConnectionProxyInstrumentation
-hikaricp-2.x=org.apache.skywalking.apm.plugin.hikaricp.define.ProxyConnectionInstrumentation
+type: jvm
+entryService: http://localhost:8080/case/hikaricp-2.x-scenario
+healthCheck: http://localhost:8080/case/healthCheck
+startScript: ./bin/startup.sh
+environment:
+depends_on:
+  - mysql-server
+dependencies:
+  mysql-server:
+    image: mysql:5.7
+    hostname: mysql-server
+    expose:
+      - "3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=test
