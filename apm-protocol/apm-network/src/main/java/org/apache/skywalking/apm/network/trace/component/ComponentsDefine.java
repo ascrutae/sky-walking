@@ -191,5 +191,9 @@ public class ComponentsDefine {
 
     public static final OfficialComponent MSSQL_JDBC_DRIVER = new OfficialComponent(104, "mssql-jdbc-driver");
 
-    public static final OfficialComponent HIKARICP = new OfficialComponent(105, "hikariCP");
+    public static final OfficialComponent APACHE_CXF = new OfficialComponent(105, "Apache-CXF");
+
+    public static final OfficialComponent DOLPHIN_SCHEDULER = new OfficialComponent(106, "dolphinscheduler");
+
+    public static final OfficialComponent HIKARICP = new OfficialComponent(107, "hikariCP");
 }

@@ -54,13 +54,15 @@ metrics based on the tracing data.
   * [Finagle](https://github.com/twitter/finagle) 6.44.0 -> 20.1.0  (6.25.0 -> 6.44.0 not tested)
   * [Brpc-Java](https://github.com/baidu/brpc-java) 2.3.7 -> 2.5.3
   * [Thrift](https://github.com/apache/thrift/tree/master/lib/java) 0.10.0 -> 0.12.0
+  * [Apache CXF](https://github.com/apache/cxf) 3.x
 * MQ
   * [RocketMQ](https://github.com/apache/rocketmq) 4.x
-  * [Kafka](http://kafka.apache.org) 0.11.0.0 -> 1.0
+  * [Kafka](http://kafka.apache.org) 0.11.0.0 -> 2.6.1
   * [Spring-Kafka](https://github.com/spring-projects/spring-kafka) Spring Kafka Consumer 1.3.x -> 2.3.x (2.0.x and 2.1.x not tested and not recommended by [the official document](https://spring.io/projects/spring-kafka))
   * [ActiveMQ](https://github.com/apache/activemq) 5.10.0 -> 5.15.4
   * [RabbitMQ](https://www.rabbitmq.com/) 5.x
   * [Pulsar](http://pulsar.apache.org) 2.2.x -> 2.4.x
+  * [Aliyun ONS](https://help.aliyun.com/document_detail/114448.html) 1.x (Optional¹)
 * NoSQL
   * Redis
     * [Jedis](https://github.com/xetorthio/jedis) 2.x
@@ -114,7 +116,10 @@ metrics based on the tracing data.
   * [Graphql](https://github.com/graphql-java) 8.0 -> 15.x
 * Pool
   * [Apache Commons DBCP](https://github.com/apache/commons-dbcp) 2.x
-  
+* Logging Framework
+  * [log4j](https://github.com/apache/log4j) 2.x
+  * [log4j2](https://github.com/apache/logging-log4j2) 1.2.x 
+  * [logback](https://github.com/qos-ch/logback) 1.2.x
 
 # Meter Plugins
 The meter plugin provides the advanced metrics collections, which are not a part of tracing.

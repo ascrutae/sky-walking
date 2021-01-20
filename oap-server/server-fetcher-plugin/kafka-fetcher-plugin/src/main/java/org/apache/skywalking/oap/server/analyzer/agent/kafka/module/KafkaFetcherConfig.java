@@ -69,6 +69,8 @@ public class KafkaFetcherConfig extends ModuleConfig {
 
     private boolean enableMeterSystem = false;
 
+    private boolean enableLog = false;
+
     private String configPath = "meter-analyzer-config";
 
     private String topicNameOfMetrics = "skywalking-metrics";
@@ -81,8 +83,14 @@ public class KafkaFetcherConfig extends ModuleConfig {
 
     private String topicNameOfMeters = "skywalking-meters";
 
+    private String topicNameOfLogs = "skywalking-logs";
+
     private int kafkaHandlerThreadPoolSize;
 
     private int kafkaHandlerThreadPoolQueueSize;
+    
+    private String mm2SourceAlias = "";
 
+    private String mm2SourceSeparator = "";
+    
 }

@@ -2,68 +2,116 @@ Changes by Version
 ==================
 Release Notes.
 
-8.3.0
+8.4.0
 ------------------
 #### Project
-* Test: ElasticSearch version 7.0.0 and 7.9.3 as storage are E2E tested. 
-* Test: Bump up testcontainers version to work around the Docker bug on MacOS. 
+* Incompatible with previous releases when use H2/MySQL/TiDB storage options, due to support multiple alarm rules triggered for one entity.
+* Chore: adapt `create_source_release.sh` to make it runnable on Linux.
+* Add `package` to `.proto` files, prevent polluting top-level namespace in some languages; The OAP server supports previous agent releases, whereas the previous OAP server (<=8.3.0) won't recognize newer agents since this version (>= 8.4.0).
+* Add ElasticSearch 7.10 to test matrix and verify it works.
+* Replace Apache RAT with skywalking-eyes to check license headers.
+* Set up test of Envoy ALS / MetricsService under Istio 1.8.2 to verify Envoy V3 protocol
 
 #### Java Agent
-* Support propagate the sending timestamp in MQ plugins to calculate the transfer latency in the async MQ scenarios.
-* Support auto-tag with the fixed values propagated in the correlation context.
-* Make HttpClient 3.x, 4.x, and HttpAsyncClient 3.x plugins to support collecting HTTP parameters.
-* Make the Feign plugin to support Java 14
-* Make the okhttp3 plugin to support Java 14
-* Polish tracing context related codes.
-* Add the plugin for async-http-client 2.x
-* Fix NPE in the nutz plugin.
-* Provide Apache Commons DBCP 2.x plugin.
-* Add the plugin for mssql-jtds 1.x.
-* Add the plugin for mssql-jdbc 6.x -> 9.x.
-* Fix the default ignore mechanism isn't accurate enough bug.
-* Add the plugin for spring-kafka 1.3.x.
+* The operation name of quartz-scheduler plugin, has been changed as the `quartz-scheduler/${className}` format.
+* Fix jdk-http and okhttp-3.x plugin did not overwrite the old trace header.
+* Add interceptors of method(analyze, searchScroll, clearScroll, searchTemplate and deleteByQuery) for elasticsearch-6.x-plugin.
+* Support collecting logs of log4j, log4j2, and logback in the tracing context with a new `logger-plugin`.
+* Fix the unexpected RunningContext recreation in the Tomcat plugin.
+* Fix the potential NPE when trace_sql_parameters is enabled.
+* Update `byte-buddy` to 1.10.19.
+* Fix thrift plugin trace link broken when intermediate service does not mount agent
+* Fix thrift plugin collects wrong args when the method without parameter.
+* Fix DataCarrier's `org.apache.skywalking.apm.commons.datacarrier.buffer.Buffer` implementation isn't activated in `IF_POSSIBLE` mode.
+* Fix ArrayBlockingQueueBuffer's useless `IF_POSSIBLE` mode list
+* Support building gRPC TLS channel but CA file is not required.
+* Add witness method mechanism in the agent plugin core.
+* Add Dolphinscheduler plugin definition.
+* Make sampling still works when the trace ignores plug-in activation.
+* Fix mssql-plugin occur ClassCastException when call the method of return generate key.
+* The operation name of dubbo and dubbo-2.7.x-plugin, has been changed as the `groupValue/className.methodName` format
+* Fix bug that rocketmq-plugin set the wrong tag.
+* Fix duplicated `EnhancedInstance` interface added.
+* Fix thread leaks caused by the elasticsearch-6.x-plugin plugin.
+* Support reading segmentId and spanId with toolkit.
+* Fix RestTemplate plugin recording url tag with wrong port
+* Support collecting logs and forwarding through gRPC.
 * Support tracing data connection pool.
 
 #### OAP-Backend
-* Add the `@SuperDataset` annotation for BrowserErrorLog.
-* Add the thread pool to the Kafka fetcher to increase the performance.
-* Add `contain` and `not contain` OPS in OAL.
-* Add Envoy ALS analyzer based on metadata exchange.
-* Add `listMetrics` GraphQL query. 
-* Support keeping collecting the slowly segments in the sampling mechanism.
-* Support choose files to active the meter analyzer.
-* Support nested class definition in the Service, ServiceInstance, Endpoint, ServiceRelation, and ServiceInstanceRelation sources.
-* Support `sideCar.internalErrorCode` in the Service, ServiceInstance, Endpoint, ServiceRelation, and ServiceInstanceRelation sources.
-* Improve Kubernetes service registry for ALS analysis.
-* Add health checker for cluster management
-* Support the service auto grouping.
-* Support query service list by the group name.
-* Improve the queryable tags generation. Remove the duplicated tags to reduce the storage payload.
-* Fix the threads of the Kafka fetcher exit if some unexpected exceptions happen.
-* Fix the excessive timeout period set by the kubernetes-client.
-* Fix deadlock problem when using elasticsearch-client-7.0.0.
-* Fix storage-jdbc isExists not set dbname.
-* Fix `searchService` bug in the InfluxDB storage implementation.
-* Fix CVE in the alarm module, when activating the dynamic configuration feature.
-* Fix CVE in the endpoint grouping, when activating the dynamic configuration feature.
-* Fix CVE in the uninstrumented gateways configs, when activating the dynamic configuration feature.
-* Fix CVE in the Apdex threshold configs, when activating the dynamic configuration feature.
-* Make the codes and doc consistent in sharding server and core server.
-* Fix that chunked string is incorrect while the tag contains colon.
-* Fix the incorrect dynamic configuration key bug of `endpoint-name-grouping`.
-* Remove unused min date timebucket in jdbc deletehistory logical
-* Fix "transaction too large error" when use TiDB as storage.
+* Make meter receiver support MAL.
+* Support influxDB connection response format option. Fix some error when use JSON as influxDB response format.
+* Support Kafka MirrorMaker 2.0 to replicate topics between Kafka clusters.
+* Add the rule name field to alarm record storage entity as a part of ID, to support multiple alarm rules triggered for one entity. The scope id has been removed from the ID.
+* Fix MAL concurrent execution issues.
+* Fix group name can't be queried in the GraphQL.
+* Fix potential gRPC connection leak(not closed) for the channels among OAP instances.
+* Filter OAP instances(unassigned in booting stage) of the empty IP in KubernetesCoordinator.
+* Add component ID for Python aiohttp plugin requester and server.
+* Fix H2 in-memory database table missing issues
+* Add component ID for Python pyramid plugin server.
+* Add component ID for NodeJS Axios plugin.
+* Fix searchService method error in storage-influxdb-plugin.
+* Add JavaScript component ID.
+* Fix CVE of UninstrumentedGateways in Dynamic Configuration activation.
+* Improve query performance in storage-influxdb-plugin.
+* Fix the uuid field in GRPCConfigWatcherRegister is not updated.
+* Support Envoy {AccessLog,Metrics}Service API V3.
+* Adopt the [MAL](docs/en/concepts-and-designs/mal.md) in Envoy metrics service analyzer.
+* Fix the priority setting doesn't work of the ALS analyzers.
+* Fix bug that `endpoint-name-grouping.yml` is not customizable in Dockerized case.
+* Fix bug that istio version metric type on UI template mismatches the otel rule.
+* Improve ReadWriteSafeCache concurrency read-write performance
+* Fix bug that if use JSON as InfluxDB.ResponseFormat then NumberFormatException maybe occur.
+* Fix `timeBucket` not taking effect in EqualsAndHashCode annotation of some relationship metrics.
+* Fix `SharingServerConfig`'s propertie is not correct in the `application.yml`, contextPath -> restConnextPath.
+* Istio control plane: remove redundant metrics and polish panel layout.
+* Fix bug endpoint name grouping not work due to setting service name and endpoint name out of order.
+* Fix receiver analysis error count metrics
+* Log collecting and query implementation
+* Support Alarm to feishu
+* Add the implementation of ConfigurationDiscovery on the OAP side.
+* Fix bug in `parseInternalErrorCode` where some error codes are never reached.
+* OAL supports multiple values when as numeric
 
 #### UI
-* Fix incorrect label in radial chart in topology.
-* Replace node-sass with dart-sass.
+* Fix un-removed tags in trace query.
+* Fix unexpected metrics name on single value component.
+* Don't allow negative value as the refresh period.
+* Fix style issue in trace table view.
+* Separation Log and Dashboard selector data to avoid conflicts.
+* Fix trace instance selector bug.
+* Fix Unnecessary sidebar in tooltips for charts.
+* Refactor dashboard query in a common script.
+* Implement refreshing data for topology by updating date.
+* Implement group selector in the topology.
+* Fix all as default parameter for services selector.
+* Add icon for Python aiohttp plugin.
+* Add icon for Python pyramid plugin.
+* Fix topology render all services nodes when groups changed.
+* Fix rk-footer utc input's width.
+* Update rk-icon and rewrite rk-header svg tags with rk-icon.
+* Add icon for http type.
+* Fix rk-footer utc without local storage.
+* Sort group names in the topology.
+* Add logo for Dolphinscheduler.
+* Fix dashboard wrong instance.
+* Add a legend for the topology.
+* Update the condition of unhealthy cube.
+* Fix: use icons to replace buttons for task list in profile.
+* Fix: support `=` in the tag value in the trace query page.
+* Add envoy proxy component logo.
+* Chore: set up license-eye to check license headers and add missing license headers.
+* Fix prop for instances-survey and endpoints-survey.
 
 #### Documentation
-* Add VNode FAQ doc.
-* Add logic endpoint section in the agent setup doc.
-* Adjust configuration names and system environment names of the sharing server module
+* Update the documents of backend fetcher and self observability about the latest configurations.
+* Add documents about the group name of service.
+* Update docs about the latest UI.
+* Update the document of backend trace sampling with the latest configuration.
+* Update kafka plugin support version to 2.6.1.
 
-All issues and pull requests are [here](https://github.com/apache/skywalking/milestone/62?closed=1)
+All issues and pull requests are [here](https://github.com/apache/skywalking/milestone/68?closed=1)
 
 ------------------
 Find change logs of all versions [here](changes).

@@ -18,6 +18,7 @@
 
 package org.apache.skywalking.oap.meter.analyzer.dsl;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -27,6 +28,17 @@ import groovy.lang.Closure;
 import io.vavr.Function2;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
+import java.util.function.DoubleBinaryOperator;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.apache.skywalking.oap.server.core.analysis.meter.MeterEntity;
+import org.apache.skywalking.oap.server.core.analysis.meter.ScopeType;
+
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -39,15 +51,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import org.apache.skywalking.oap.server.core.analysis.meter.MeterEntity;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
@@ -59,40 +64,17 @@ import static java.util.stream.Collectors.toList;
 @EqualsAndHashCode
 @ToString
 public class SampleFamily {
-    public static final SampleFamily EMPTY = new SampleFamily(new Sample[0], Context.EMPTY);
+    public static final SampleFamily EMPTY = new SampleFamily(new Sample[0], RunningContext.EMPTY);
 
-    public static SampleFamily build(Sample... samples) {
-        return build(null, samples);
-    }
-
-    static SampleFamily build(Context ctx, Sample... samples) {
+    static SampleFamily build(RunningContext ctx, Sample... samples) {
         Preconditions.checkNotNull(samples);
         Preconditions.checkArgument(samples.length > 0);
-        return new SampleFamily(samples, Optional.ofNullable(ctx).orElseGet(Context::instance));
-    }
-
-    static SampleFamily buildHistogram(Sample... samples) {
-        return buildHistogram(null, samples);
-    }
-
-    static SampleFamily buildHistogram(Context ctx, Sample... samples) {
-        Preconditions.checkNotNull(samples);
-        Preconditions.checkArgument(samples.length > 0);
-        ctx = Optional.ofNullable(ctx).orElseGet(Context::instance);
-        ctx.isHistogram = true;
-        return new SampleFamily(samples, ctx);
-    }
-
-    static SampleFamily buildHistogramPercentile(SampleFamily histogram, int[] percentiles) {
-        Preconditions.checkNotNull(histogram);
-        Preconditions.checkArgument(histogram.context.isHistogram);
-        histogram.context.percentiles = percentiles;
-        return new SampleFamily(histogram.samples, histogram.context);
+        return new SampleFamily(samples, Optional.ofNullable(ctx).orElseGet(RunningContext::instance));
     }
 
     public final Sample[] samples;
 
-    public final Context context;
+    public final RunningContext context;
 
     /**
      * Following operations are used in DSL
@@ -181,21 +163,55 @@ public class SampleFamily {
 
     /* Aggregation operators */
     public SampleFamily sum(List<String> by) {
+        return aggregate(by, Double::sum);
+    }
+
+    public SampleFamily max(List<String> by) {
+        return aggregate(by, Double::max);
+    }
+
+    public SampleFamily min(List<String> by) {
+        return aggregate(by, Double::min);
+    }
+
+    public SampleFamily avg(List<String> by) {
+        ExpressionParsingContext.get().ifPresent(ctx -> ctx.aggregationLabels.addAll(by));
         if (this == EMPTY) {
             return EMPTY;
         }
         if (by == null) {
-            double result = Arrays.stream(samples).mapToDouble(s -> s.value).reduce(Double::sum).orElse(0.0D);
+            double result = Arrays.stream(samples).mapToDouble(s -> s.value).average().orElse(0.0D);
+            return SampleFamily.build(this.context, newSample(ImmutableMap.of(), samples[0].timestamp, result));
+        }
+        return SampleFamily.build(
+            this.context,
+            Arrays.stream(samples)
+                  .map(sample -> Tuple.of(by.stream()
+                                            .collect(toImmutableMap(labelKey -> labelKey, labelKey -> sample.labels.getOrDefault(labelKey, ""))), sample))
+                  .collect(groupingBy(Tuple2::_1, mapping(Tuple2::_2, toList())))
+                  .entrySet().stream()
+                  .map(entry -> newSample(entry.getKey(), entry.getValue().get(0).timestamp, entry.getValue().stream()
+                                                                                                  .mapToDouble(s -> s.value).average().orElse(0.0D)))
+                  .toArray(Sample[]::new)
+        );
+    }
+
+    protected SampleFamily aggregate(List<String> by, DoubleBinaryOperator aggregator) {
+        ExpressionParsingContext.get().ifPresent(ctx -> ctx.aggregationLabels.addAll(by));
+        if (this == EMPTY) {
+            return EMPTY;
+        }
+        if (by == null) {
+            double result = Arrays.stream(samples).mapToDouble(s -> s.value).reduce(aggregator).orElse(0.0D);
             return SampleFamily.build(this.context, newSample(ImmutableMap.of(), samples[0].timestamp, result));
         }
         return SampleFamily.build(this.context, Arrays.stream(samples)
             .map(sample -> Tuple.of(by.stream()
-                .collect(ImmutableMap
-                    .toImmutableMap(labelKey -> labelKey, labelKey -> sample.labels.getOrDefault(labelKey, ""))), sample))
+                .collect(toImmutableMap(labelKey -> labelKey, labelKey -> sample.labels.getOrDefault(labelKey, ""))), sample))
             .collect(groupingBy(Tuple2::_1, mapping(Tuple2::_2, toList())))
             .entrySet().stream()
             .map(entry -> newSample(entry.getKey(), entry.getValue().get(0).timestamp, entry.getValue().stream()
-                .mapToDouble(s -> s.value).reduce(Double::sum).orElse(0.0D)))
+                .mapToDouble(s -> s.value).reduce(aggregator).orElse(0.0D)))
             .toArray(Sample[]::new));
     }
 
@@ -250,32 +266,33 @@ public class SampleFamily {
     }
 
     public SampleFamily histogram() {
-        return histogram("le", TimeUnit.SECONDS);
+        return histogram("le", this.context.defaultHistogramBucketUnit);
     }
 
     public SampleFamily histogram(String le) {
-        return histogram(le, TimeUnit.SECONDS);
+        return histogram(le, this.context.defaultHistogramBucketUnit);
     }
 
     public SampleFamily histogram(String le, TimeUnit unit) {
         long scale = unit.toMillis(1);
         Preconditions.checkArgument(scale > 0);
+        ExpressionParsingContext.get().ifPresent(ctx -> ctx.isHistogram = true);
         if (this == EMPTY) {
             return EMPTY;
         }
         AtomicDouble pre = new AtomicDouble();
         AtomicReference<String> preLe = new AtomicReference<>("0");
-        return SampleFamily.buildHistogram(this.context, Stream.concat(
+        return SampleFamily.build(this.context, Stream.concat(
             Arrays.stream(samples).filter(s -> !s.labels.containsKey(le)),
             Arrays.stream(samples)
                 .filter(s -> s.labels.containsKey(le))
                 .sorted(Comparator.comparingDouble(s -> Double.parseDouble(s.labels.get(le))))
                 .map(s -> {
-                    double r = s.value - pre.get();
+                    double r = this.context.histogramType == HistogramType.ORDINARY ? s.value : s.value - pre.get();
                     pre.set(s.value);
                     ImmutableMap<String, String> ll = ImmutableMap.<String, String>builder()
                         .putAll(Maps.filterKeys(s.labels, key -> !Objects.equals(key, le)))
-                        .put("le", String.valueOf((long) (Double.parseDouble(preLe.get()) * scale))).build();
+                        .put("le", String.valueOf((long) ((Double.parseDouble(this.context.histogramType == HistogramType.ORDINARY ? s.labels.get(le) : preLe.get())) * scale))).build();
                     preLe.set(s.labels.get(le));
                     return newSample(ll, s.timestamp, r);
                 })).toArray(Sample[]::new));
@@ -283,14 +300,20 @@ public class SampleFamily {
 
     public SampleFamily histogram_percentile(List<Integer> percentiles) {
         Preconditions.checkArgument(percentiles.size() > 0);
-        if (this == EMPTY) {
-            return EMPTY;
-        }
-        return SampleFamily.buildHistogramPercentile(this, percentiles.stream().mapToInt(i -> i).toArray());
+        int[] p = percentiles.stream().mapToInt(i -> i).toArray();
+        ExpressionParsingContext.get().ifPresent(ctx -> {
+            Preconditions.checkState(ctx.isHistogram, "histogram() should be invoked before invoking histogram_percentile()");
+            ctx.percentiles = p;
+        });
+        return this;
     }
 
     public SampleFamily service(List<String> labelKeys) {
         Preconditions.checkArgument(labelKeys.size() > 0);
+        ExpressionParsingContext.get().ifPresent(ctx -> {
+            ctx.scopeType = ScopeType.SERVICE;
+            ctx.scopeLabels.addAll(labelKeys);
+        });
         if (this == EMPTY) {
             return EMPTY;
         }
@@ -301,6 +324,12 @@ public class SampleFamily {
     public SampleFamily instance(List<String> serviceKeys, List<String> instanceKeys) {
         Preconditions.checkArgument(serviceKeys.size() > 0);
         Preconditions.checkArgument(instanceKeys.size() > 0);
+        ExpressionParsingContext.get().ifPresent(ctx -> ctx.scopeType = ScopeType.SERVICE_INSTANCE);
+        ExpressionParsingContext.get().ifPresent(ctx -> {
+            ctx.scopeType = ScopeType.SERVICE_INSTANCE;
+            ctx.scopeLabels.addAll(serviceKeys);
+            ctx.scopeLabels.addAll(instanceKeys);
+        });
         if (this == EMPTY) {
             return EMPTY;
         }
@@ -311,6 +340,12 @@ public class SampleFamily {
     public SampleFamily endpoint(List<String> serviceKeys, List<String> endpointKeys) {
         Preconditions.checkArgument(serviceKeys.size() > 0);
         Preconditions.checkArgument(endpointKeys.size() > 0);
+        ExpressionParsingContext.get().ifPresent(ctx -> ctx.scopeType = ScopeType.ENDPOINT);
+        ExpressionParsingContext.get().ifPresent(ctx -> {
+            ctx.scopeType = ScopeType.ENDPOINT;
+            ctx.scopeLabels.addAll(serviceKeys);
+            ctx.scopeLabels.addAll(endpointKeys);
+        });
         if (this == EMPTY) {
             return EMPTY;
         }
@@ -319,7 +354,8 @@ public class SampleFamily {
     }
 
     private String dim(List<String> labelKeys) {
-        return labelKeys.stream().map(k -> samples[0].labels.getOrDefault(k, "")).collect(Collectors.joining("."));
+        String name = labelKeys.stream().map(k -> samples[0].labels.getOrDefault(k, "")).collect(Collectors.joining("."));
+        return CharMatcher.is('.').trimFrom(name);
     }
 
     private SampleFamily left(List<String> labelKeys) {
@@ -349,6 +385,9 @@ public class SampleFamily {
     }
 
     SampleFamily newValue(Function<Double, Double> transform) {
+        if (this == EMPTY) {
+            return EMPTY;
+        }
         Sample[] ss = new Sample[samples.length];
         for (int i = 0; i < ss.length; i++) {
             ss[i] = samples[i].newValue(transform);
@@ -392,20 +431,21 @@ public class SampleFamily {
     @Getter
     @Setter
     @Builder
-    public static class Context {
+    public static class RunningContext {
 
-        static Context EMPTY = Context.builder().build();
+        static RunningContext EMPTY = instance();
 
-        static Context instance() {
-            return Context.builder().downsampling(DownsamplingType.AVG).build();
+        static RunningContext instance() {
+            return RunningContext.builder()
+                .histogramType(HistogramType.CUMULATIVE)
+                .defaultHistogramBucketUnit(TimeUnit.SECONDS)
+                .build();
         }
 
-        boolean isHistogram;
-
-        int[] percentiles;
-
-        DownsamplingType downsampling;
-
         MeterEntity meterEntity;
+
+        private HistogramType histogramType;
+
+        private TimeUnit defaultHistogramBucketUnit;
     }
 }

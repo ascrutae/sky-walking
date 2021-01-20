@@ -72,7 +72,7 @@ This is the properties list supported in `agent/config/agent.config`.
 property key | Description | Default |
 ----------- | ---------- | --------- | 
 `agent.namespace` | Namespace isolates headers in cross process propagation. The HEADER name will be `HeaderName:Namespace`. | Not set | 
-`agent.service_name` | The service name to represent a logic group providing the same capabilities/logic. Suggestion: set a unique name for every logic service group, service instance nodes share the same code, Max length is 50(UTF-8 char) | `Your_ApplicationName` |
+`agent.service_name` | The service name to represent a logic group providing the same capabilities/logic. Suggestion: set a unique name for every logic service group, service instance nodes share the same code, Max length is 50(UTF-8 char). Optional, once `service_name` follows `<group name>::<logic name>` format, OAP server assigns the group name to the service metadata.| `Your_ApplicationName` |
 `agent.sample_n_per_3_secs`|Negative or zero means off, by default.SAMPLE_N_PER_3_SECS means sampling N TraceSegment in 3 seconds tops.|Not set|
 `agent.authentication`|Authentication active is based on backend setting, see application.yml for more details.For most scenarios, this needs backend extensions, only basic match auth provided in default implementation.|Not set|
 `agent.span_limit_per_segment`|The max number of spans in a single segment. Through this config item, SkyWalking keep your application memory cost estimated.|300 |
@@ -86,6 +86,7 @@ property key | Description | Default |
 `agent.force_reconnection_period `|Force reconnection period of grpc, based on grpc_channel_check_interval.|`1`|
 `agent.operation_name_threshold `|The operationName max length, setting this value > 190 is not recommended.|`150`|
 `agent.keep_tracing`|Keep tracing even the backend is not available if this value is `true`.|`false`|
+`agent.force_tls`|Force open TLS for gRPC channel if this value is `true`.|`false`|
 `osinfo.ipv4_list_size`| Limit the length of the ipv4 list size. |`10`|
 `collector.grpc_channel_check_interval`|grpc channel status check interval.|`30`|
 `collector.heartbeat_period`|agent heartbeat report period. Unit, second.|`30`|
@@ -158,6 +159,13 @@ property key | Description | Default |
 `plugin.kafka.topic_profilings` | Specify which Kafka topic name for Thread Profiling snapshot to report to. | `skywalking_profilings` |
 `plugin.kafka.topic_management` | Specify which Kafka topic name for the register or heartbeat data of Service Instance to report to. | `skywalking_managements` |
 `plugin.springannotation.classname_match_regex` |  Match spring beans with regular expression for the class name. Multiple expressions could be separated by a comma. This only works when `Spring annotation plugin` has been activated. | `All the spring beans tagged with @Bean,@Service,@Dao, or @Repository.` |
+`plugin.toolkit.log.grpc.reporter.server_host` | Specify which grpc server's host for log data to report to. | `127.0.0.1` |
+`plugin.toolkit.log.grpc.reporter.server_port` | Specify which grpc server's port for log data to report to. | `11800` |
+`plugin.toolkit.log.grpc.reporter.max_message_size` | Specify the maximum size of log data for grpc client to report to. | `10485760` |
+`plugin.toolkit.log.grpc.reporter.upstream_timeout` | How long grpc client will timeout in sending data to upstream. Unit is second.|`30` seconds|
+
+## Dynamic Configurations
+All configurations above are static, if you need to change some agent settings at runtime, please read [CDS - Configuration Discovery Service document](configuration-discovery.md) for more details.
 
 ## Optional Plugins
 Java agent plugins are all pluggable. Optional plugins could be provided in `optional-plugins` folder under agent or 3rd party repositories.
@@ -175,6 +183,7 @@ Now, we have the following known optional plugins.
 * [Plugin of Kotlin coroutine](agent-optional-plugins/Kotlin-Coroutine-plugin.md) provides the tracing across coroutines automatically. As it will add local spans to all across routines scenarios, Please assess the performance impact.
 * Plugin of quartz-scheduler-2.x in the optional plugin folder. The reason for being an optional plugin is, many task scheduling systems are based on quartz-scheduler, this will cause duplicate tracing and link different sub-tasks as they share the same quartz level trigger, such as ElasticJob.
 * Plugin of spring-webflux-5.x in the optional plugin folder. Please only activate this plugin when you use webflux alone as a web container. If you are using SpringMVC 5 or Spring Gateway, you don't need this plugin.
+* [Plugin of logger(logback, log4j, log4j2)](agent-optional-plugins/Logger-plugin.md) in the optional plugin folder. For the performance perspective, please only activate it when you need to add logs(from logback,log4j, or log4j2) to the span log event. **Notice, collecting logs in the tracing would impact the performance and memory seriously. Only collect necessary logs.**
 
 ## Bootstrap class plugins
 All bootstrap plugins are optional, due to unexpected risk. Bootstrap plugins are provided in `bootstrap-plugins` folder.
@@ -192,7 +201,7 @@ The following logic endpoints are added automatically by plugins.
 1. Spring's ScheduledMethodRunnable jobs are logic endpoints. The name format is `SpringScheduled`/`${className}`/`${methodName}`.
 1. Apache ShardingSphere ElasticJob's jobs are logic endpoints. The name format is `ElasticJob`/`${jobName}`.
 1. XXLJob's jobs are logic endpoints. The name formats include `xxl-job`/`MethodJob`/`${className}`.`${methodName}`, `xxl-job`/`ScriptJob`/`${GlueType}`/`id`/`${jobId}`, and `xxl-job`/`SimpleJob`/`${className}`.
-1. Quartz(optional plugin)'s jobs are logic endpoints. the name format is `quartz-scheduler`/`${jobName}`.
+1. Quartz(optional plugin)'s jobs are logic endpoints. the name format is `quartz-scheduler`/`${className}`.
 
 User could use the SkyWalking's application toolkits to add the tag into the local span to label the span as a logic endpoint in the analysis stage.
 The tag is, key=`x-le` and value = `{"logic-span":true}`.
@@ -205,7 +214,7 @@ The tag is, key=`x-le` and value = `{"logic-span":true}`.
 * Application Toolkit, are a collection of libraries, provided by SkyWalking APM. Using them, you have a bridge between your application and SkyWalking APM agent. 
     * If you want your codes to interact with SkyWalking agent, including `getting trace id`, `setting tags`, `propagating custom data` etc.. Try [SkyWalking manual APIs](Application-toolkit-trace.md).
     * If you require customized metrics, try [SkyWalking Meter System Toolkit](Application-toolkit-meter.md).
-    * If you want to print trace context(e.g. traceId) in your logs, choose the log frameworks, [log4j](Application-toolkit-log4j-1.x.md), 
+    * If you want to print trace context(e.g. traceId) in your logs, or collect logs, choose the log frameworks, [log4j](Application-toolkit-log4j-1.x.md), 
 [log4j2](Application-toolkit-log4j-2.x.md), [logback](Application-toolkit-logback-1.x.md)
     * If you want to continue traces across thread manually, use [across thread solution APIs](Application-toolkit-trace-cross-thread.md).
     * If you want to forward MicroMeter/Spring Sleuth metrics to Meter System, use [SkyWalking MicroMeter Register](Application-toolkit-micrometer.md).

@@ -30,6 +30,7 @@ core|default|role|Option values, `Mixed/Receiver/Aggregator`. **Receiver** mode 
 | - | - | instanceNameMaxLength| Max length limitation of service instance name. The max length of service + instance names should be less than 200.|SW_INSTANCE_NAME_MAX_LENGTH|70|
 | - | - | endpointNameMaxLength| Max length limitation of endpoint name. The max length of service + endpoint names should be less than 240.|SW_ENDPOINT_NAME_MAX_LENGTH|150|
 | - | - | searchableTracesTags | Define the set of span tag keys, which should be searchable through the GraphQL. Multiple values should be separated through the comma. | SW_SEARCHABLE_TAG_KEYS | http.method,status_code,db.type,db.instance,mq.queue,mq.topic,mq.broker|
+| - | - | searchableLogsTags | Define the set of log tag keys, which should be searchable through the GraphQL. Multiple values should be separated through the comma. | SW_SEARCHABLE_LOGS_TAG_KEYS | - |
 | - | - | gRPCThreadPoolSize|Pool size of gRPC server| SW_CORE_GRPC_THREAD_POOL_SIZE | CPU core * 4|
 | - | - | gRPCThreadPoolQueueSize| The queue size of gRPC server| SW_CORE_GRPC_POOL_QUEUE_SIZE | 10000|
 | - | - | maxConcurrentCallsPerConnection | The maximum number of concurrent calls permitted for each incoming connection. Defaults to no limit. | SW_CORE_GRPC_MAX_CONCURRENT_CALL | - |
@@ -138,7 +139,9 @@ core|default|role|Option values, `Mixed/Receiver/Aggregator`. **Receiver** mode 
 | - | - | database | Database of InfluxDB. | SW_STORAGE_INFLUXDB_DATABASE | skywalking |
 | - | - | actions | The number of actions to collect. | SW_STORAGE_INFLUXDB_ACTIONS | 1000 |
 | - | - | duration | The time to wait at most (milliseconds). | SW_STORAGE_INFLUXDB_DURATION | 1000|
+| - | - | batchEnabled | If true, write points with batch api. | SW_STORAGE_INFLUXDB_BATCH_ENABLED | true|
 | - | - | fetchTaskLogMaxSize | The max number of fetch task log in a request. | SW_STORAGE_INFLUXDB_FETCH_TASK_LOG_MAX_SIZE | 5000|
+| - | - | connectionResponseFormat | The response format of connection to influxDB, cannot be anything but MSGPACK or JSON. | SW_STORAGE_INFLUXDB_CONNECTION_RESPONSE_FORMAT | MSGPACK |
 | agent-analyzer | default | Agent Analyzer. | SW_AGENT_ANALYZER | default |
 | - | -| sampleRate|Sampling rate for receiving trace. The precision is 1/10000. 10000 means 100% sample in default.|SW_TRACE_SAMPLE_RATE|10000|
 | - | - |slowDBAccessThreshold|The slow database access thresholds. Unit ms.|SW_SLOW_DB_THRESHOLD|default:200,mongodb:100|
@@ -171,18 +174,13 @@ core|default|role|Option values, `Mixed/Receiver/Aggregator`. **Receiver** mode 
 | receiver-clr| default| Read [receiver doc](backend-receivers.md) for more details | - | - |
 | receiver-profile| default| Read [receiver doc](backend-receivers.md) for more details | - | - |
 | service-mesh| default| Read [receiver doc](backend-receivers.md) for more details | - | - |
-| istio-telemetry| default| Read [receiver doc](backend-receivers.md) for more details | - | - |
 | envoy-metric| default| Read [receiver doc](backend-receivers.md) for more details | - | - |
 | - | - | acceptMetricsService | Open Envoy Metrics Service analysis | SW_ENVOY_METRIC_SERVICE | true|
 | - | - | alsHTTPAnalysis | Open Envoy Access Log Service analysis. Value = `k8s-mesh` means open the analysis | SW_ENVOY_METRIC_ALS_HTTP_ANALYSIS | - |
 | - | - | k8sServiceNameRule | `k8sServiceNameRule` allows you to customize the service name in ALS via Kubernetes metadata, the available variables are `pod`, `service`, e.g., you can use `${service.metadata.name}-${pod.metadata.labels.version}` to append the version number to the service name. Be careful, when using environment variables to pass this configuration, use single quotes(`''`) to avoid it being evaluated by the shell. | - |
-| receiver-oc | default | Read [receiver doc](backend-receivers.md) for more details | - | - |
-| - | - | gRPCHost|Binding IP of gRPC service. Services include gRPC data report and internal communication among OAP nodes| SW_OC_RECEIVER_GRPC_HOST | - |
-| - | - | gRPCPort| Binding port of gRPC service | SW_OC_RECEIVER_GRPC_PORT | - |
-| - | - | gRPCThreadPoolSize|Pool size of gRPC server| - | CPU core * 4|
-| - | - | gRPCThreadPoolQueueSize| The queue size of gRPC server| - | 10000|
-| - | - | maxConcurrentCallsPerConnection | The maximum number of concurrent calls permitted for each incoming connection. Defaults to no limit. | - | - |
-| - | - | maxMessageSize | Sets the maximum message size allowed to be received on the server. Empty means 4 MiB | - | 4M(based on Netty) |
+| receiver-otel | default | Read [receiver doc](backend-receivers.md) for more details | - | - |
+| - | - | enabledHandlers|Enabled handlers for otel| SW_OTEL_RECEIVER_ENABLED_HANDLERS | - |
+| - | - | enabledOcRules|Enabled metric rules for OC handler | SW_OTEL_RECEIVER_ENABLED_OC_RULES | - |
 | receiver_zipkin |default| Read [receiver doc](backend-receivers.md) | - | - |
 | - | - | restHost| Binding IP of restful service. |SW_RECEIVER_ZIPKIN_HOST|0.0.0.0|
 | - | - | restPort | Binding port of restful service | SW_RECEIVER_ZIPKIN_PORT|9411|
@@ -207,6 +205,7 @@ core|default|role|Option values, `Mixed/Receiver/Aggregator`. **Receiver** mode 
 | - | - | createTopicIfNotExist | If true, create the Kafka topic when it does not exist. | - | true |
 | - | - | partitions | The number of partitions for the topic being created. | SW_KAFKA_FETCHER_PARTITIONS | 3 |
 | - | - | enableMeterSystem | To enable to fetch and handle [Meter System](backend-meter.md) data. | SW_KAFKA_FETCHER_ENABLE_METER_SYSTEM | false |
+| - | - | enableLog | To enable to fetch and handle log data. | SW_KAFKA_FETCHER_ENABLE_LOG | false |
 | - | - | replicationFactor | The replication factor for each partition in the topic being created. | SW_KAFKA_FETCHER_PARTITIONS_FACTOR | 2 |
 | - | - | kafkaHandlerThreadPoolSize | Pool size of kafka message handler executor. | SW_KAFKA_HANDLER_THREAD_POOL_SIZE | CPU core * 2 |
 | - | - | kafkaHandlerThreadPoolQueueSize | The queue size of kafka message handler executor. | SW_KAFKA_HANDLER_THREAD_POOL_QUEUE_SIZE | 10000 |
@@ -215,12 +214,13 @@ core|default|role|Option values, `Mixed/Receiver/Aggregator`. **Receiver** mode 
 | - | - | topicNameOfProfiling | Specifying Kafka topic name for Profiling data. | - | skywalking-profilings |
 | - | - | topicNameOfTracingSegments | Specifying Kafka topic name for Tracing data. | - | skywalking-segments |
 | - | - | topicNameOfManagements | Specifying Kafka topic name for service instance reporting and registering. | - | skywalking-managements |
+| - | - | topicNameOfLogs | Specifying Kafka topic name for log data. | - | skywalking-logs |
 | receiver-browser | default | Read [receiver doc](backend-receivers.md) for more details | - | - | - |
 | - | - | sampleRate | Sampling rate for receiving trace. The precision is 1/10000. 10000 means 100% sample in default. | SW_RECEIVER_BROWSER_SAMPLE_RATE | 10000 |
 | query | graphql | - | GraphQL query implementation | - |
 | - | - | path | Root path of GraphQL query and mutation. | SW_QUERY_GRAPHQL_PATH | /graphql|
 | alarm | default | - | Read [alarm doc](backend-alarm.md) for more details. | - |
-| telemetry | - | - | Read [telemetry doc](backend-telemetry.md) for more details. | - | 
+| telemetry | - | - | Read [telemetry doc](backend-telemetry.md) for more details. | - |
 | - | none| - | No op implementation | - |
 | - | prometheus| host | Binding host for Prometheus server fetching data| SW_TELEMETRY_PROMETHEUS_HOST|0.0.0.0|
 | - | - | port|  Binding port for Prometheus server fetching data|SW_TELEMETRY_PROMETHEUS_PORT|1234|
@@ -242,7 +242,7 @@ core|default|role|Option values, `Mixed/Receiver/Aggregator`. **Receiver** mode 
 | - | etcd| clusterName| Service name used for SkyWalking cluster. |SW_CONFIG_ETCD_CLUSTER_NAME|default|
 | - | - | serverAddr| hosts and ports used of etcd cluster.| SW_CONFIG_ETCD_SERVER_ADDR|localhost:2379|
 | - | - | group |Additional prefix of the configuration key| SW_CONFIG_ETCD_GROUP | skywalking|
-| - | - | period | The period of data sync. Unit is second. | SW_CONFIG_ZK_PERIOD | 60 
+| - | - | period | The period of data sync. Unit is second. | SW_CONFIG_ZK_PERIOD | 60
 | - | consul | hostPort| hosts and ports used of Consul cluster.| SW_CONFIG_CONSUL_HOST_AND_PORTS|localhost:8500|
 | - | - | aclToken| ALC Token of Consul. Empty string means `without ALC token`.| SW_CONFIG_CONSUL_ACL_TOKEN | - |
 | - | - | period | The period of data sync. Unit is second. | SW_CONFIG_CONSUL_PERIOD | 60 |
@@ -260,6 +260,7 @@ core|default|role|Option values, `Mixed/Receiver/Aggregator`. **Receiver** mode 
 | exporter | grpc | targetHost | The host of target grpc server for receiving export data. | SW_EXPORTER_GRPC_HOST | 127.0.0.1 |
 | - | - | targetPort | The port of target grpc server for receiving export data. | SW_EXPORTER_GRPC_PORT | 9870 |
 | health-checker | default | checkIntervalSeconds | The period of check OAP internal health status. Unit is second. | SW_HEALTH_CHECKER_INTERVAL_SECONDS | 5 |
+| configuration-discovery | default | disableMessageDigest | If true, agent receives the latest configuration every time even without change. In default, OAP uses SHA512 message digest mechanism to detect changes of configuration. | SW_DISABLE_MESSAGE_DIGEST | false
 
 ## Notice
 ¹ System Environment Variable name could be declared and changed in the application.yml. The names listed here,
