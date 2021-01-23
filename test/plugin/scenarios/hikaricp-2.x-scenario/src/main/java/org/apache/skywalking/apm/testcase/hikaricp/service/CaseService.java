@@ -16,39 +16,42 @@
  *
  */
 
-package org.apache.skywalking.apm.testcase.dbcp.service;
+package org.apache.skywalking.apm.testcase.hikaricp.service;
 
-import org.apache.commons.dbcp2.BasicDataSourceFactory;
-import org.apache.skywalking.apm.testcase.dbcp.MysqlConfig;
-import org.springframework.stereotype.Service;
-
-import javax.sql.DataSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
+import org.apache.skywalking.apm.testcase.hikaricp.config.Config;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class CaseService {
 
-    public static DataSource ds;
-    private static final String CREATE_TABLE_SQL = "CREATE TABLE test_DBCP(\n" + "id VARCHAR(1) PRIMARY KEY, \n" + "value VARCHAR(1) NOT NULL)";
-    private static final String INSERT_DATA_SQL = "INSERT INTO test_DBCP(id, value) VALUES(1,1)";
-    private static final String QUERY_DATA_SQL = "SELECT id, value FROM test_DBCP WHERE id=1";
-    private static final String DELETE_DATA_SQL = "DELETE FROM test_DBCP WHERE id=1";
-    private static final String DROP_TABLE_SQL = "DROP table test_DBCP";
+    @Autowired
+    private Config mysqlConfig;
 
-    static {
-        Properties properties = new Properties();
-        properties.setProperty("driverClassName", "com.mysql.jdbc.Driver");
-        properties.setProperty("url", MysqlConfig.getUrl());
-        properties.setProperty("username", MysqlConfig.getUserName());
-        properties.setProperty("password", MysqlConfig.getPassword());
-        try {
-            ds = BasicDataSourceFactory.createDataSource(properties);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public static DataSource ds;
+    private static final String CREATE_TABLE_SQL = "CREATE TABLE test_hikaricp(\n" + "id VARCHAR(1) PRIMARY KEY, \n" + "value VARCHAR(1) NOT NULL)";
+    private static final String INSERT_DATA_SQL = "INSERT INTO test_hikaricp(id, value) VALUES(1,1)";
+    private static final String QUERY_DATA_SQL = "SELECT id, value FROM test_hikaricp WHERE id=1";
+    private static final String DELETE_DATA_SQL = "DELETE FROM test_hikaricp WHERE id=1";
+    private static final String DROP_TABLE_SQL = "DROP table test_hikaricp";
+
+    @PostConstruct
+    public void setUp() {
+        HikariConfig config = new HikariConfig();
+        config.setDriverClassName("com.mysql.jdbc.Driver");
+        config.setJdbcUrl(mysqlConfig.getUrl());
+        config.setUsername(mysqlConfig.getUserName());
+        config.setPassword(mysqlConfig.getPassword());
+        config.setConnectionTimeout(TimeUnit.SECONDS.toMillis(5));
+        ds = new HikariDataSource(config);
     }
 
     public void testCase() {

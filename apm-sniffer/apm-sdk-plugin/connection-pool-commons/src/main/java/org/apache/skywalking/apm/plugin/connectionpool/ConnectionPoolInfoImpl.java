@@ -25,8 +25,6 @@ import org.apache.skywalking.apm.agent.core.meter.Gauge;
 import org.apache.skywalking.apm.agent.core.meter.Histogram;
 import org.apache.skywalking.apm.agent.core.meter.MeterId;
 import org.apache.skywalking.apm.agent.core.meter.MeterService;
-import org.apache.skywalking.apm.agent.core.meter.MeterTag;
-import org.apache.skywalking.apm.agent.core.meter.MeterType;
 
 public class ConnectionPoolInfoImpl implements ConnectionPoolInfo {
     public static final String POOL_ID = "pool_id";
@@ -76,69 +74,36 @@ public class ConnectionPoolInfoImpl implements ConnectionPoolInfo {
     }
 
     private MeterId registerAwaitConnectionThreadNumMeter(final MeterService meterService) {
-        MeterId awaitConnectionThreadNumMeter = newAwaitConnectionThreadNumMeter(poolId);
-        meterService.register(
-            new Gauge(awaitConnectionThreadNumMeter, () -> {
-                try {
-                    return recorder.getAwaitConnectionThreadNumber();
-                } catch (ObjectHadBeenRecycledException e) {
-                    unregisterFromMeterSystem();
-                    return 0d;
-                }
-            }));
-        return awaitConnectionThreadNumMeter;
+        return meterService.register(new Gauge.Builder(CONNECTION_POOL_AWAITING_CONNECTION_THREAD_NUM, () -> {
+            try {
+                return recorder.getAwaitConnectionThreadNumber();
+            } catch (ObjectHadBeenRecycledException e) {
+                unregisterFromMeterSystem();
+                return 0d;
+            }
+        }).tag(POOL_ID, poolId).build()).getId();
     }
 
     private MeterId registerActiveCountMeter(final MeterService meterService) {
-        MeterId activeCountMeter = newActiveCountMeter(poolId);
-        meterService.register(new Gauge(activeCountMeter, () -> {
+        return meterService.register(new Gauge.Builder(CONNECTION_POOL_ACTIVE_COUNTS, () -> {
             try {
                 return recorder.getActiveConnections();
             } catch (ObjectHadBeenRecycledException e) {
                 unregisterFromMeterSystem();
                 return 0d;
             }
-        }));
-        return activeCountMeter;
+        }).tag(POOL_ID, poolId).build()).getId();
     }
 
     private MeterId registerGetConnectionLatencyMeter(final MeterService meterService) {
-        MeterId getConnectionLatencyMeter = newGetConnectionLatencyMeter(poolId);
-        this.getConnectionLatencyHistogram = new Histogram(getConnectionLatencyMeter, STEPS);
-        meterService.register(this.getConnectionLatencyHistogram);
-        return getConnectionLatencyMeter;
+        this.getConnectionLatencyHistogram = new Histogram.Builder(CONNECTION_POOL_GET_CONNECTION_LATENCY)
+            .tag(POOL_ID, poolId).steps(STEPS).build();
+        return meterService.register(this.getConnectionLatencyHistogram).getId();
     }
 
     private MeterId registerGetConnectionFailureRateMeter(final MeterService meterService) {
         this.failureRateSupplier = new FailureRateSupplier();
-        MeterId getConnectionFailureRateMeter = newGetConnectionFailureRate(poolId);
-        meterService.register(new Gauge(getConnectionFailureRateMeter, failureRateSupplier));
-        return getConnectionFailureRateMeter;
-    }
-
-    private MeterId newActiveCountMeter(String poolId) {
-        return new MeterId(
-            CONNECTION_POOL_ACTIVE_COUNTS, MeterType.GAUGE, Arrays.asList(new MeterTag(POOL_ID, poolId)));
-    }
-
-    private MeterId newAwaitConnectionThreadNumMeter(String poolId) {
-        return new MeterId(
-            CONNECTION_POOL_AWAITING_CONNECTION_THREAD_NUM, MeterType.GAUGE, Arrays.asList(
-            new MeterTag(POOL_ID, poolId)
-        ));
-    }
-
-    private MeterId newGetConnectionLatencyMeter(String poolId) {
-        return new MeterId(
-            CONNECTION_POOL_GET_CONNECTION_LATENCY, MeterType.HISTOGRAM, Arrays.asList(
-            new MeterTag(POOL_ID, poolId)
-        ));
-    }
-
-    private MeterId newGetConnectionFailureRate(String poolId) {
-        return new MeterId(
-            CONNECTION_POOL_GET_CONNECTION_FAILURE_RATE, MeterType.HISTOGRAM, Arrays.asList(
-            new MeterTag(POOL_ID, poolId)
-        ));
+        return meterService.register(new Gauge.Builder(CONNECTION_POOL_GET_CONNECTION_FAILURE_RATE, failureRateSupplier)
+            .tag(POOL_ID, poolId).build()).getId();
     }
 }

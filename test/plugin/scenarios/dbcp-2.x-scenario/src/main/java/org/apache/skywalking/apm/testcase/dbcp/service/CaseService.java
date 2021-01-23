@@ -16,10 +16,10 @@
  *
  */
 
-package org.apache.skywalking.apm.testcase.dbcp.service;
+package org.apache.skywalking.apm.testcase.hikaricp.service;
 
 import org.apache.commons.dbcp2.BasicDataSourceFactory;
-import org.apache.skywalking.apm.testcase.dbcp.MysqlConfig;
+import org.apache.skywalking.apm.testcase.hikaricp.MysqlConfig;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;

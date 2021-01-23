@@ -16,19 +16,30 @@
  *
  */
 
-package org.apache.skywalking.apm.testcase.hikaricp;
+package org.apache.skywalking.apm.testcase.hikaricp.config;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 
-@SpringBootApplication
-public class Application {
+@Configuration
+public class Config {
 
-    public static void main(String[] args) {
-        try {
-            SpringApplication.run(Application.class, args);
-        } catch (Exception e) {
-            // Never do this
-        }
+    @Value("${mysql.url}")
+    private String url;
+    @Value("${mysql.username}")
+    private String userName;
+    @Value("${mysql.password}")
+    private String password;
+
+    public String getUrl() {
+        return url;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public String getPassword() {
+        return password;
     }
 }

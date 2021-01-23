@@ -16,11 +16,11 @@
  *
  */
 
-package org.apache.skywalking.apm.testcase.dbcp.controller;
+package org.apache.skywalking.apm.testcase.hikaricp.controller;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.skywalking.apm.testcase.dbcp.service.CaseService;
+import org.apache.skywalking.apm.testcase.hikaricp.service.CaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
