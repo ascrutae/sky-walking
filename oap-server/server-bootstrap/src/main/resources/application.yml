@@ -103,7 +103,7 @@ core:
     # Define the set of log tag keys, which should be searchable through the GraphQL.
     searchableLogsTags: ${SW_SEARCHABLE_LOGS_TAG_KEYS:""}
 storage:
-  selector: ${SW_STORAGE:h2}
+  selector: ${SW_STORAGE:mysql}
   elasticsearch:
     nameSpace: ${SW_NAMESPACE:""}
     clusterNodes: ${SW_STORAGE_ES_CLUSTER_NODES:localhost:9200}
@@ -165,7 +165,7 @@ storage:
     properties:
       jdbcUrl: ${SW_JDBC_URL:"jdbc:mysql://localhost:3306/swtest"}
       dataSource.user: ${SW_DATA_SOURCE_USER:root}
-      dataSource.password: ${SW_DATA_SOURCE_PASSWORD:root@1234}
+      dataSource.password: ${SW_DATA_SOURCE_PASSWORD:root1234}
       dataSource.cachePrepStmts: ${SW_DATA_SOURCE_CACHE_PREP_STMTS:true}
       dataSource.prepStmtCacheSize: ${SW_DATA_SOURCE_PREP_STMT_CACHE_SQL_SIZE:250}
       dataSource.prepStmtCacheSqlLimit: ${SW_DATA_SOURCE_PREP_STMT_CACHE_SQL_LIMIT:2048}
@@ -209,7 +209,7 @@ agent-analyzer:
     # Exit spans with the component in the list would not generate the client-side instance relation metrics.
     noUpstreamRealAddressAgents: ${SW_NO_UPSTREAM_REAL_ADDRESS:6000,9000}
     slowTraceSegmentThreshold: ${SW_SLOW_TRACE_SEGMENT_THRESHOLD:-1} # Setting this threshold about the latency would make the slow trace segments sampled if they cost more time, even the sampling mechanism activated. The default value is `-1`, which means would not sample slow traces. Unit, millisecond.
-    meterAnalyzerActiveFiles: ${SW_METER_ANALYZER_ACTIVE_FILES:spring-sleuth.yaml} # Which files could be meter analyzed, files split by ","
+    meterAnalyzerActiveFiles: ${SW_METER_ANALYZER_ACTIVE_FILES:spring-sleuth.yaml,connection-pool.yaml} # Which files could be meter analyzed, files split by ","
 
 log-analyzer:
   selector: ${SW_LOG_ANALYZER:default}

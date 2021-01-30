@@ -12,43 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-meters:
+expSuffix: instance(['instance'])
+metricPrefix: connection_pool
+metricsRules:
   - name: connection_pool_active_counts
-    scope:
-      type: SERVICE_INSTANCE
-    meter:
-      operation: avgLabeled
-      groupBy:
-        - pool_id
-      value: meter["connection_pool_active_counts"]
+    exp: connection_pool_active_counts.avg(['pool-id'])
   - name: connection_pool_awaiting_connection_thread_num
-    scope:
-      type: SERVICE_INSTANCE
-    meter:
-      operation: avgLabeled
-      groupBy:
-        - pool_id
-      value: meter["connection_pool_awaiting_connection_thread_num"]
-  - name: connection_pool_get_connection_latency_percentile
-    scope:
-      type: SERVICE_INSTANCE
-    meter:
-      operation: avgHistogramPercentile
-      groupBy:
-        - pool_id
-      value: meter["connection_pool_get_connection_latency"]
-      percentile:
-        - 50
-        - 75
-        - 90
-        - 95
-        - 99
+    exp: connection_pool_awaiting_connection_thread_num.avg(['pool-id'])
   - name: connection_pool_get_connection_failure_rate
-    scope:
-      type: SERVICE_INSTANCE
-    meter:
-      operation: avgLabeled
-      groupBy:
-        - pool_id
-      value: meter["connection_pool_get_connection_failure_rate"]
+    exp: connection_pool_get_connection_failure_rate.avg()
+  - name: connection_pool_get_connection_latency
+    exp: connection_pool_get_connection_latency.histogram().histogram_percentile([50,70,90,99])
