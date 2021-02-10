@@ -108,6 +108,8 @@
         <module>mssql-jtds-1.x-plugin</module>
         <module>mssql-jdbc-plugin</module>
         <module>cxf-3.x-plugin</module>
+        <module>connection-pool-common</module>
+        <module>hikaricp-2.x-plugin</module>
     </modules>
     <packaging>pom</packaging>
 
