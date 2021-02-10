@@ -13,22 +13,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package org.apache.skywalking.apm.testcase.hikaricp;
+package org.apache.skywalking.apm.plugin.hikaricp.define;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.apache.skywalking.apm.plugin.connectionpool.ConnectionPoolInfo;
 
-@SpringBootApplication
-public class Application {
+public class EnhanceObjectHolder {
 
-    public static void main(String[] args) {
-        try {
-            SpringApplication.run(Application.class, args);
-        } catch (Exception e) {
-            // Never do this
-        }
+    private final ConnectionPoolInfo holder;
+
+    public EnhanceObjectHolder(final ConnectionPoolInfo enhanceObjectHolder) {
+        this.holder = enhanceObjectHolder;
+    }
+
+    public void recordGetConnectionTime(final long time) {
+        holder.recordGetConnectionTime(time);
+    }
+
+    public void recordGetConnectionStatue(boolean failed) {
+        holder.recordGetConnectionStatue(failed);
     }
 }

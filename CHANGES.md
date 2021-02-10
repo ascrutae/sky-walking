@@ -36,6 +36,7 @@ Release Notes.
 * Support reading segmentId and spanId with toolkit.
 * Fix RestTemplate plugin recording url tag with wrong port
 * Support collecting logs and forwarding through gRPC.
+* Support tracing data connection pool.
 
 #### OAP-Backend
 * Make meter receiver support MAL.

@@ -13,22 +13,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package org.apache.skywalking.apm.testcase.hikaricp;
+package org.apache.skywalking.apm.plugin.hikaricp.define;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import com.zaxxer.hikari.pool.HikariPool;
+import org.apache.skywalking.apm.plugin.connectionpool.PoolCapabilityMetricValueRecorder;
 
-@SpringBootApplication
-public class Application {
+public class HikariPoolMetricValueRecorderSingle extends PoolCapabilityMetricValueRecorder<HikariPool> {
+    public HikariPoolMetricValueRecorderSingle(final HikariPool connectionPool) {
+        super(connectionPool);
+    }
 
-    public static void main(String[] args) {
-        try {
-            SpringApplication.run(Application.class, args);
-        } catch (Exception e) {
-            // Never do this
-        }
+    @Override
+    protected Double realGetActiveConnections(final HikariPool hikariPool) throws Throwable {
+        return Double.valueOf(hikariPool.getActiveConnections());
+    }
+
+    @Override
+    protected Double realGetThreadsAwaitingConnection(final HikariPool hikariPool) throws Throwable {
+        return Double.valueOf(hikariPool.getThreadsAwaitingConnection());
     }
 }

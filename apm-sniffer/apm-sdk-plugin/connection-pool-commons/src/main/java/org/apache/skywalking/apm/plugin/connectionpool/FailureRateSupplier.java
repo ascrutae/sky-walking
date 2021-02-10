@@ -13,22 +13,26 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package org.apache.skywalking.apm.testcase.hikaricp;
+package org.apache.skywalking.apm.plugin.connectionpool;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import com.google.common.util.concurrent.AtomicDouble;
+import java.util.function.Supplier;
 
-@SpringBootApplication
-public class Application {
+public class FailureRateSupplier implements Supplier<Double> {
+    private final AtomicDouble totalTimes = new AtomicDouble();
+    private AtomicDouble failedTimes = new AtomicDouble();
 
-    public static void main(String[] args) {
-        try {
-            SpringApplication.run(Application.class, args);
-        } catch (Exception e) {
-            // Never do this
-        }
+    @Override
+    public Double get() {
+        double total = totalTimes.getAndSet(0);
+        double failed = failedTimes.getAndSet(0);
+        return total == 0 ? 0 : failed / total;
+    }
+
+    public void recordGetConnectionStatue(final boolean failed) {
+        totalTimes.addAndGet(1);
+        failedTimes.addAndGet(failed ? 1 : 0);
     }
 }

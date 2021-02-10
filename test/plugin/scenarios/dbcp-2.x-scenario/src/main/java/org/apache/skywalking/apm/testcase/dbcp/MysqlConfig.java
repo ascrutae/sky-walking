@@ -16,7 +16,7 @@
  *
  */
 
-package org.apache.skywalking.apm.testcase.dbcp;
+package org.apache.skywalking.apm.testcase.hikaricp;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -28,24 +28,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/case")
-public class CaseController {
+public class HikariCPController {
 
     @Autowired
     CaseService caseService;
 
-    private static final Logger LOGGER = LogManager.getLogger(CaseController.class);
+    private static final Logger logger = LogManager.getLogger(HikariCPController.class);
 
     private static final String SUCCESS = "Success";
-    
-    @RequestMapping("/dbcp-2.x-scenario")
+
+    @RequestMapping("/hikaricp-2.x-scenario")
     @ResponseBody
     public String testcase() throws Exception {
-        try {
-            caseService.testCase();
-        } catch (Exception e) {
-            LOGGER.error("Failed to execute sql.", e);
-            throw e;
-        }
+        caseService.testCase();
         return SUCCESS;
     }
 
